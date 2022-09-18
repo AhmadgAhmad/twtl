@@ -1,0 +1,20 @@
+
+
+[CRASH COURSE]
+The lesson is going to show the rational behind using ANTLR4: 
+
+Refer to Automata Theory, Languages, and Computation Book 
+- g4 file: 
+    - Grammar specs
+    - Tokens 
+
+- ANTLR will generate: 
+    (w/ visiter option)
+    - parser            } Java class
+    - Lexer             } Java class
+    - Visiter:          } Java class
+    - Listener:         } Java class 
+I might use another java classes that I utilize the parser/lexer/visiter/listener (e.g. AST class that I need to develop)
+
+
+

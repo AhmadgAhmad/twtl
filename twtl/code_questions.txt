@@ -1,0 +1,7 @@
+Q1: 
+- Shouldn't the hold operator be apparent in base case? Then why it has "?" in the formula definition? 
+- How to consider a parsing rule as a lexer rule? 
+    - What is parsing rule? what is lexer rule?
+    - The problem is an atomic proposition is dealt with as a token, and I want to consider a linear predicate as an atomic proposition 
+    , we might as well keep the definition as is, and we deal with the labeling function in the TWTL class itself? 
+     
