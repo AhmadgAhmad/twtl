@@ -1,14 +1,14 @@
-# $ANTLR 3.1.3 Mar 18, 2009 10:09:25 C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g 2016-02-22 17:58:48
-
+# Generated from twtl.g4 by ANTLR 4.7.1
+from antlr4 import *
+from io import StringIO
+from typing.io import TextIO
 import sys
-from antlr3 import *
-from antlr3.compat import set, frozenset
-                         
+
+
 license_text='''
-    Lexer for TWTL formulae. 
-    Copyright (C) 2015-2016  Cristian Ioan Vasile <cvasile@bu.edu>
-    Hybrid and Networked Systems (HyNeSs) Group, BU Robotics Lab,
-    Boston University
+    Copyright (C) 2015-2020  Cristian Ioan Vasile <cvasile@lehigh.edu>
+    Explainable Robotics Lab (ERL), Autonomous and Intelligent Robotics Lab
+    Lehigh University
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -25,1138 +25,178 @@ license_text='''
 '''
 
 
-
-# for convenience in actions
-HIDDEN = BaseRecognizer.HIDDEN
-
-# token types
-LETTER=18
-CONCAT=9
-PROP=11
-WITHIN=8
-LWLETTER=15
-INT=10
-WS=20
-EOF=-1
-HOLD=7
-LINECMT=19
-OR=5
-TRUE=12
-DIGIT=14
-NOT=6
-T__26=26
-HGLETTER=16
-AND=4
-T__22=22
-T__23=23
-T__24=24
-FALSE=13
-T__25=25
-HGLETTERALL=17
-T__21=21
+def serializedATN():
+    with StringIO() as buf:
+        buf.write("\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\2\36")
+        buf.write("\u00ef\b\1\4\2\t\2\4\3\t\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7")
+        buf.write("\t\7\4\b\t\b\4\t\t\t\4\n\t\n\4\13\t\13\4\f\t\f\4\r\t\r")
+        buf.write("\4\16\t\16\4\17\t\17\4\20\t\20\4\21\t\21\4\22\t\22\4\23")
+        buf.write("\t\23\4\24\t\24\4\25\t\25\4\26\t\26\4\27\t\27\4\30\t\30")
+        buf.write("\4\31\t\31\4\32\t\32\4\33\t\33\4\34\t\34\4\35\t\35\4\36")
+        buf.write("\t\36\4\37\t\37\4 \t \4!\t!\4\"\t\"\3\2\3\2\3\3\3\3\3")
+        buf.write("\4\3\4\3\5\3\5\3\6\3\6\3\7\3\7\3\b\3\b\3\b\3\t\3\t\3\t")
+        buf.write("\3\t\3\n\3\n\3\13\3\13\3\f\3\f\3\r\3\r\3\16\3\16\3\16")
+        buf.write("\3\17\3\17\3\20\3\20\3\20\3\21\3\21\3\22\3\22\3\22\3\22")
+        buf.write("\3\22\3\22\3\22\3\22\3\22\3\22\3\22\3\22\3\22\3\22\3\22")
+        buf.write("\3\22\3\22\3\22\5\22}\n\22\3\23\3\23\5\23\u0081\n\23\3")
+        buf.write("\23\3\23\3\23\7\23\u0086\n\23\f\23\16\23\u0089\13\23\3")
+        buf.write("\24\5\24\u008c\n\24\3\24\7\24\u008f\n\24\f\24\16\24\u0092")
+        buf.write("\13\24\3\24\5\24\u0095\n\24\3\24\6\24\u0098\n\24\r\24")
+        buf.write("\16\24\u0099\3\24\3\24\3\24\5\24\u009f\n\24\3\24\7\24")
+        buf.write("\u00a2\n\24\f\24\16\24\u00a5\13\24\3\25\3\25\3\25\3\25")
+        buf.write("\3\25\5\25\u00ac\n\25\3\26\3\26\3\26\3\26\3\26\5\26\u00b3")
+        buf.write("\n\26\3\27\3\27\3\30\3\30\3\31\3\31\3\32\3\32\5\32\u00bd")
+        buf.write("\n\32\3\32\3\32\3\32\7\32\u00c2\n\32\f\32\16\32\u00c5")
+        buf.write("\13\32\3\33\3\33\3\34\3\34\3\35\3\35\3\36\5\36\u00ce\n")
+        buf.write("\36\3\37\3\37\5\37\u00d2\n\37\3 \3 \3 \7 \u00d7\n \f ")
+        buf.write("\16 \u00da\13 \5 \u00dc\n \3!\3!\3!\3!\7!\u00e2\n!\f!")
+        buf.write("\16!\u00e5\13!\3!\3!\3\"\6\"\u00ea\n\"\r\"\16\"\u00eb")
+        buf.write("\3\"\3\"\2\2#\3\3\5\4\7\5\t\6\13\7\r\b\17\t\21\n\23\13")
+        buf.write("\25\f\27\r\31\16\33\17\35\20\37\21!\22#\23%\24\'\25)\26")
+        buf.write("+\27-\30/\31\61\32\63\33\65\2\67\29\2;\2=\2?\34A\35C\36")
+        buf.write("\3\2\7\3\2\62;\4\2##\u0080\u0080\5\2CIKXZ\\\4\2\f\f\17")
+        buf.write("\17\5\2\13\f\16\17\"\"\2\u0104\2\3\3\2\2\2\2\5\3\2\2\2")
+        buf.write("\2\7\3\2\2\2\2\t\3\2\2\2\2\13\3\2\2\2\2\r\3\2\2\2\2\17")
+        buf.write("\3\2\2\2\2\21\3\2\2\2\2\23\3\2\2\2\2\25\3\2\2\2\2\27\3")
+        buf.write("\2\2\2\2\31\3\2\2\2\2\33\3\2\2\2\2\35\3\2\2\2\2\37\3\2")
+        buf.write("\2\2\2!\3\2\2\2\2#\3\2\2\2\2%\3\2\2\2\2\'\3\2\2\2\2)\3")
+        buf.write("\2\2\2\2+\3\2\2\2\2-\3\2\2\2\2/\3\2\2\2\2\61\3\2\2\2\2")
+        buf.write("\63\3\2\2\2\2?\3\2\2\2\2A\3\2\2\2\2C\3\2\2\2\3E\3\2\2")
+        buf.write("\2\5G\3\2\2\2\7I\3\2\2\2\tK\3\2\2\2\13M\3\2\2\2\rO\3\2")
+        buf.write("\2\2\17Q\3\2\2\2\21T\3\2\2\2\23X\3\2\2\2\25Z\3\2\2\2\27")
+        buf.write("\\\3\2\2\2\31^\3\2\2\2\33`\3\2\2\2\35c\3\2\2\2\37e\3\2")
+        buf.write("\2\2!h\3\2\2\2#|\3\2\2\2%\u0080\3\2\2\2\'\u008b\3\2\2")
+        buf.write("\2)\u00ab\3\2\2\2+\u00b2\3\2\2\2-\u00b4\3\2\2\2/\u00b6")
+        buf.write("\3\2\2\2\61\u00b8\3\2\2\2\63\u00bc\3\2\2\2\65\u00c6\3")
+        buf.write("\2\2\2\67\u00c8\3\2\2\29\u00ca\3\2\2\2;\u00cd\3\2\2\2")
+        buf.write("=\u00d1\3\2\2\2?\u00db\3\2\2\2A\u00dd\3\2\2\2C\u00e9\3")
+        buf.write("\2\2\2EF\7*\2\2F\4\3\2\2\2GH\7+\2\2H\6\3\2\2\2IJ\7`\2")
+        buf.write("\2J\b\3\2\2\2KL\7]\2\2L\n\3\2\2\2MN\7_\2\2N\f\3\2\2\2")
+        buf.write("OP\7.\2\2P\16\3\2\2\2QR\7/\2\2RS\7*\2\2S\20\3\2\2\2TU")
+        buf.write("\7r\2\2UV\7t\2\2VW\7f\2\2W\22\3\2\2\2XY\7\61\2\2Y\24\3")
+        buf.write("\2\2\2Z[\7-\2\2[\26\3\2\2\2\\]\7/\2\2]\30\3\2\2\2^_\7")
+        buf.write(">\2\2_\32\3\2\2\2`a\7>\2\2ab\7?\2\2b\34\3\2\2\2cd\7?\2")
+        buf.write("\2d\36\3\2\2\2ef\7@\2\2fg\7?\2\2g \3\2\2\2hi\7@\2\2i\"")
+        buf.write("\3\2\2\2jk\7v\2\2kl\7t\2\2lm\7w\2\2m}\7g\2\2no\7V\2\2")
+        buf.write("op\7t\2\2pq\7w\2\2q}\7g\2\2rs\7h\2\2st\7c\2\2tu\7n\2\2")
+        buf.write("uv\7u\2\2v}\7g\2\2wx\7H\2\2xy\7c\2\2yz\7n\2\2z{\7u\2\2")
+        buf.write("{}\7g\2\2|j\3\2\2\2|n\3\2\2\2|r\3\2\2\2|w\3\2\2\2}$\3")
+        buf.write("\2\2\2~\u0081\5\67\34\2\177\u0081\5;\36\2\u0080~\3\2\2")
+        buf.write("\2\u0080\177\3\2\2\2\u0081\u0087\3\2\2\2\u0082\u0086\7")
+        buf.write("a\2\2\u0083\u0086\5=\37\2\u0084\u0086\5\65\33\2\u0085")
+        buf.write("\u0082\3\2\2\2\u0085\u0083\3\2\2\2\u0085\u0084\3\2\2\2")
+        buf.write("\u0086\u0089\3\2\2\2\u0087\u0085\3\2\2\2\u0087\u0088\3")
+        buf.write("\2\2\2\u0088&\3\2\2\2\u0089\u0087\3\2\2\2\u008a\u008c")
+        buf.write("\7/\2\2\u008b\u008a\3\2\2\2\u008b\u008c\3\2\2\2\u008c")
+        buf.write("\u0090\3\2\2\2\u008d\u008f\t\2\2\2\u008e\u008d\3\2\2\2")
+        buf.write("\u008f\u0092\3\2\2\2\u0090\u008e\3\2\2\2\u0090\u0091\3")
+        buf.write("\2\2\2\u0091\u0094\3\2\2\2\u0092\u0090\3\2\2\2\u0093\u0095")
+        buf.write("\7\60\2\2\u0094\u0093\3\2\2\2\u0094\u0095\3\2\2\2\u0095")
+        buf.write("\u0097\3\2\2\2\u0096\u0098\t\2\2\2\u0097\u0096\3\2\2\2")
+        buf.write("\u0098\u0099\3\2\2\2\u0099\u0097\3\2\2\2\u0099\u009a\3")
+        buf.write("\2\2\2\u009a\u009e\3\2\2\2\u009b\u009f\7G\2\2\u009c\u009d")
+        buf.write("\7G\2\2\u009d\u009f\7/\2\2\u009e\u009b\3\2\2\2\u009e\u009c")
+        buf.write("\3\2\2\2\u009e\u009f\3\2\2\2\u009f\u00a3\3\2\2\2\u00a0")
+        buf.write("\u00a2\t\2\2\2\u00a1\u00a0\3\2\2\2\u00a2\u00a5\3\2\2\2")
+        buf.write("\u00a3\u00a1\3\2\2\2\u00a3\u00a4\3\2\2\2\u00a4(\3\2\2")
+        buf.write("\2\u00a5\u00a3\3\2\2\2\u00a6\u00ac\7(\2\2\u00a7\u00a8")
+        buf.write("\7(\2\2\u00a8\u00ac\7(\2\2\u00a9\u00aa\7\61\2\2\u00aa")
+        buf.write("\u00ac\7^\2\2\u00ab\u00a6\3\2\2\2\u00ab\u00a7\3\2\2\2")
+        buf.write("\u00ab\u00a9\3\2\2\2\u00ac*\3\2\2\2\u00ad\u00b3\7~\2\2")
+        buf.write("\u00ae\u00af\7~\2\2\u00af\u00b3\7~\2\2\u00b0\u00b1\7^")
+        buf.write("\2\2\u00b1\u00b3\7\61\2\2\u00b2\u00ad\3\2\2\2\u00b2\u00ae")
+        buf.write("\3\2\2\2\u00b2\u00b0\3\2\2\2\u00b3,\3\2\2\2\u00b4\u00b5")
+        buf.write("\t\3\2\2\u00b5.\3\2\2\2\u00b6\u00b7\7J\2\2\u00b7\60\3")
+        buf.write("\2\2\2\u00b8\u00b9\7,\2\2\u00b9\62\3\2\2\2\u00ba\u00bd")
+        buf.write("\5\67\34\2\u00bb\u00bd\5;\36\2\u00bc\u00ba\3\2\2\2\u00bc")
+        buf.write("\u00bb\3\2\2\2\u00bd\u00c3\3\2\2\2\u00be\u00c2\7a\2\2")
+        buf.write("\u00bf\u00c2\5=\37\2\u00c0\u00c2\5\65\33\2\u00c1\u00be")
+        buf.write("\3\2\2\2\u00c1\u00bf\3\2\2\2\u00c1\u00c0\3\2\2\2\u00c2")
+        buf.write("\u00c5\3\2\2\2\u00c3\u00c1\3\2\2\2\u00c3\u00c4\3\2\2\2")
+        buf.write("\u00c4\64\3\2\2\2\u00c5\u00c3\3\2\2\2\u00c6\u00c7\4\62")
+        buf.write(";\2\u00c7\66\3\2\2\2\u00c8\u00c9\4c|\2\u00c98\3\2\2\2")
+        buf.write("\u00ca\u00cb\4C\\\2\u00cb:\3\2\2\2\u00cc\u00ce\t\4\2\2")
+        buf.write("\u00cd\u00cc\3\2\2\2\u00ce<\3\2\2\2\u00cf\u00d2\5\67\34")
+        buf.write("\2\u00d0\u00d2\59\35\2\u00d1\u00cf\3\2\2\2\u00d1\u00d0")
+        buf.write("\3\2\2\2\u00d2>\3\2\2\2\u00d3\u00dc\7\62\2\2\u00d4\u00d8")
+        buf.write("\4\63;\2\u00d5\u00d7\5\65\33\2\u00d6\u00d5\3\2\2\2\u00d7")
+        buf.write("\u00da\3\2\2\2\u00d8\u00d6\3\2\2\2\u00d8\u00d9\3\2\2\2")
+        buf.write("\u00d9\u00dc\3\2\2\2\u00da\u00d8\3\2\2\2\u00db\u00d3\3")
+        buf.write("\2\2\2\u00db\u00d4\3\2\2\2\u00dc@\3\2\2\2\u00dd\u00de")
+        buf.write("\7\61\2\2\u00de\u00df\7\61\2\2\u00df\u00e3\3\2\2\2\u00e0")
+        buf.write("\u00e2\n\5\2\2\u00e1\u00e0\3\2\2\2\u00e2\u00e5\3\2\2\2")
+        buf.write("\u00e3\u00e1\3\2\2\2\u00e3\u00e4\3\2\2\2\u00e4\u00e6\3")
+        buf.write("\2\2\2\u00e5\u00e3\3\2\2\2\u00e6\u00e7\b!\2\2\u00e7B\3")
+        buf.write("\2\2\2\u00e8\u00ea\t\6\2\2\u00e9\u00e8\3\2\2\2\u00ea\u00eb")
+        buf.write("\3\2\2\2\u00eb\u00e9\3\2\2\2\u00eb\u00ec\3\2\2\2\u00ec")
+        buf.write("\u00ed\3\2\2\2\u00ed\u00ee\b\"\2\2\u00eeD\3\2\2\2\30\2")
+        buf.write("|\u0080\u0085\u0087\u008b\u0090\u0094\u0099\u009e\u00a3")
+        buf.write("\u00ab\u00b2\u00bc\u00c1\u00c3\u00cd\u00d1\u00d8\u00db")
+        buf.write("\u00e3\u00eb\3\b\2\2")
+        return buf.getvalue()
 
 
 class twtlLexer(Lexer):
 
-    # grammarFileName = "C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g"
-    grammarFileName = "\\home\\ahmad\\Desktop\\multi-agt-TWTL\\multi-agt-TWTL-synth\\twtl.g"
-    antlr_version = version_str_to_tuple("3.1.3 Mar 18, 2009 10:09:25")
-    antlr_version_str = "3.1.3 Mar 18, 2009 10:09:25"
+    atn = ATNDeserializer().deserialize(serializedATN())
+
+    decisionsToDFA = [ DFA(ds, i) for i, ds in enumerate(atn.decisionToState) ]
+
+    T__0 = 1
+    T__1 = 2
+    T__2 = 3
+    T__3 = 4
+    T__4 = 5
+    T__5 = 6
+    T__6 = 7
+    T__7 = 8
+    T__8 = 9
+    T__9 = 10
+    T__10 = 11
+    T__11 = 12
+    T__12 = 13
+    T__13 = 14
+    T__14 = 15
+    T__15 = 16
+    BOOLEAN = 17
+    VARIABLE = 18
+    RATIONAL = 19
+    AND = 20
+    OR = 21
+    NOT = 22
+    HOLD = 23
+    CONCAT = 24
+    PROP = 25
+    INT = 26
+    LINECMT = 27
+    WS = 28
+
+    channelNames = [ u"DEFAULT_TOKEN_CHANNEL", u"HIDDEN" ]
+
+    modeNames = [ "DEFAULT_MODE" ]
+
+    literalNames = [ "<INVALID>",
+            "'('", "')'", "'^'", "'['", "']'", "','", "'-('", "'prd'", "'/'", 
+            "'+'", "'-'", "'<'", "'<='", "'='", "'>='", "'>'", "'H'", "'*'" ]
+
+    symbolicNames = [ "<INVALID>",
+            "BOOLEAN", "VARIABLE", "RATIONAL", "AND", "OR", "NOT", "HOLD", 
+            "CONCAT", "PROP", "INT", "LINECMT", "WS" ]
+
+    ruleNames = [ "T__0", "T__1", "T__2", "T__3", "T__4", "T__5", "T__6", 
+                  "T__7", "T__8", "T__9", "T__10", "T__11", "T__12", "T__13", 
+                  "T__14", "T__15", "BOOLEAN", "VARIABLE", "RATIONAL", "AND", 
+                  "OR", "NOT", "HOLD", "CONCAT", "PROP", "DIGIT", "LWLETTER", 
+                  "HGLETTER", "HGLETTERALL", "LETTER", "INT", "LINECMT", 
+                  "WS" ]
+
+    grammarFileName = "twtl.g4"
+
+    def __init__(self, input=None, output:TextIO = sys.stdout):
+        super().__init__(input, output)
+        self.checkVersion("4.7.1")
+        self._interp = LexerATNSimulator(self, self.atn, self.decisionsToDFA, PredictionContextCache())
+        self._actions = None
+        self._predicates = None
 
-    def __init__(self, input=None, state=None):
-        if state is None:
-            state = RecognizerSharedState()
-        super(twtlLexer, self).__init__(input, state)
 
-
-        self.dfa11 = self.DFA11(
-            self, 11,
-            eot = self.DFA11_eot,
-            eof = self.DFA11_eof,
-            min = self.DFA11_min,
-            max = self.DFA11_max,
-            accept = self.DFA11_accept,
-            special = self.DFA11_special,
-            transition = self.DFA11_transition
-            )
-
-
-
-
-                               
-    def getAlphabet(self):
-        return self.alphabet
-
-    def setAlphabet(self, alphabet):
-        self.alphabet = alphabet
-
-
-
-    # $ANTLR start "AND"
-    def mAND(self, ):
-
-        try:
-            _type = AND
-            _channel = DEFAULT_CHANNEL
-
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:36:5: ( '&' )
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:36:7: '&'
-            pass 
-            self.match(38)
-
-
-
-            self._state.type = _type
-            self._state.channel = _channel
-
-        finally:
-
-            pass
-
-    # $ANTLR end "AND"
-
-
-
-    # $ANTLR start "OR"
-    def mOR(self, ):
-
-        try:
-            _type = OR
-            _channel = DEFAULT_CHANNEL
-
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:37:4: ( '|' )
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:37:6: '|'
-            pass 
-            self.match(124)
-
-
-
-            self._state.type = _type
-            self._state.channel = _channel
-
-        finally:
-
-            pass
-
-    # $ANTLR end "OR"
-
-
-
-    # $ANTLR start "NOT"
-    def mNOT(self, ):
-
-        try:
-            _type = NOT
-            _channel = DEFAULT_CHANNEL
-
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:38:5: ( '!' )
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:38:7: '!'
-            pass 
-            self.match(33)
-
-
-
-            self._state.type = _type
-            self._state.channel = _channel
-
-        finally:
-
-            pass
-
-    # $ANTLR end "NOT"
-
-
-
-    # $ANTLR start "HOLD"
-    def mHOLD(self, ):
-
-        try:
-            _type = HOLD
-            _channel = DEFAULT_CHANNEL
-
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:39:6: ( 'H' )
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:39:8: 'H'
-            pass 
-            self.match(72)
-
-
-
-            self._state.type = _type
-            self._state.channel = _channel
-
-        finally:
-
-            pass
-
-    # $ANTLR end "HOLD"
-
-
-
-    # $ANTLR start "WITHIN"
-    def mWITHIN(self, ):
-
-        try:
-            _type = WITHIN
-            _channel = DEFAULT_CHANNEL
-
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:40:8: ( 'W' )
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:40:10: 'W'
-            pass 
-            self.match(87)
-
-
-
-            self._state.type = _type
-            self._state.channel = _channel
-
-        finally:
-
-            pass
-
-    # $ANTLR end "WITHIN"
-
-
-
-    # $ANTLR start "CONCAT"
-    def mCONCAT(self, ):
-
-        try:
-            _type = CONCAT
-            _channel = DEFAULT_CHANNEL
-
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:41:8: ( '*' )
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:41:10: '*'
-            pass 
-            self.match(42)
-
-
-
-            self._state.type = _type
-            self._state.channel = _channel
-
-        finally:
-
-            pass
-
-    # $ANTLR end "CONCAT"
-
-
-
-    # $ANTLR start "T__21"
-    def mT__21(self, ):
-
-        try:
-            _type = T__21
-            _channel = DEFAULT_CHANNEL
-
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:42:7: ( '^' )
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:42:9: '^'
-            pass 
-            self.match(94)
-
-
-
-            self._state.type = _type
-            self._state.channel = _channel
-
-        finally:
-
-            pass
-
-    # $ANTLR end "T__21"
-
-
-
-    # $ANTLR start "T__22"
-    def mT__22(self, ):
-
-        try:
-            _type = T__22
-            _channel = DEFAULT_CHANNEL
-
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:43:7: ( '[' )
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:43:9: '['
-            pass 
-            self.match(91)
-
-
-
-            self._state.type = _type
-            self._state.channel = _channel
-
-        finally:
-
-            pass
-
-    # $ANTLR end "T__22"
-
-
-
-    # $ANTLR start "T__23"
-    def mT__23(self, ):
-
-        try:
-            _type = T__23
-            _channel = DEFAULT_CHANNEL
-
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:44:7: ( ']' )
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:44:9: ']'
-            pass 
-            self.match(93)
-
-
-
-            self._state.type = _type
-            self._state.channel = _channel
-
-        finally:
-
-            pass
-
-    # $ANTLR end "T__23"
-
-
-
-    # $ANTLR start "T__24"
-    def mT__24(self, ):
-
-        try:
-            _type = T__24
-            _channel = DEFAULT_CHANNEL
-
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:45:7: ( ',' )
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:45:9: ','
-            pass 
-            self.match(44)
-
-
-
-            self._state.type = _type
-            self._state.channel = _channel
-
-        finally:
-
-            pass
-
-    # $ANTLR end "T__24"
-
-
-
-    # $ANTLR start "T__25"
-    def mT__25(self, ):
-
-        try:
-            _type = T__25
-            _channel = DEFAULT_CHANNEL
-
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:46:7: ( '(' )
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:46:9: '('
-            pass 
-            self.match(40)
-
-
-
-            self._state.type = _type
-            self._state.channel = _channel
-
-        finally:
-
-            pass
-
-    # $ANTLR end "T__25"
-
-
-
-    # $ANTLR start "T__26"
-    def mT__26(self, ):
-
-        try:
-            _type = T__26
-            _channel = DEFAULT_CHANNEL
-
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:47:7: ( ')' )
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:47:9: ')'
-            pass 
-            self.match(41)
-
-
-
-            self._state.type = _type
-            self._state.channel = _channel
-
-        finally:
-
-            pass
-
-    # $ANTLR end "T__26"
-
-
-
-    # $ANTLR start "DIGIT"
-    def mDIGIT(self, ):
-
-        try:
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:132:13: ( ( '0' .. '9' ) )
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:132:15: ( '0' .. '9' )
-            pass 
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:132:15: ( '0' .. '9' )
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:132:16: '0' .. '9'
-            pass 
-            self.matchRange(48, 57)
-
-
-
-
-
-
-
-        finally:
-
-            pass
-
-    # $ANTLR end "DIGIT"
-
-
-
-    # $ANTLR start "LWLETTER"
-    def mLWLETTER(self, ):
-
-        try:
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:134:13: ( ( 'a' .. 'z' ) )
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:134:15: ( 'a' .. 'z' )
-            pass 
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:134:15: ( 'a' .. 'z' )
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:134:16: 'a' .. 'z'
-            pass 
-            self.matchRange(97, 122)
-
-
-
-
-
-
-
-        finally:
-
-            pass
-
-    # $ANTLR end "LWLETTER"
-
-
-
-    # $ANTLR start "HGLETTER"
-    def mHGLETTER(self, ):
-
-        try:
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:136:13: ( ( 'A' .. 'Z' ) )
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:136:15: ( 'A' .. 'Z' )
-            pass 
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:136:15: ( 'A' .. 'Z' )
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:136:16: 'A' .. 'Z'
-            pass 
-            self.matchRange(65, 90)
-
-
-
-
-
-
-
-        finally:
-
-            pass
-
-    # $ANTLR end "HGLETTER"
-
-
-
-    # $ANTLR start "HGLETTERALL"
-    def mHGLETTERALL(self, ):
-
-        try:
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:138:13: ( ( 'A' .. 'G' ) | ( 'I' .. 'V' ) | ( 'X' .. 'Z' ) )
-            alt1 = 3
-            LA1 = self.input.LA(1)
-            if LA1 == 65 or LA1 == 66 or LA1 == 67 or LA1 == 68 or LA1 == 69 or LA1 == 70 or LA1 == 71:
-                alt1 = 1
-            elif LA1 == 73 or LA1 == 74 or LA1 == 75 or LA1 == 76 or LA1 == 77 or LA1 == 78 or LA1 == 79 or LA1 == 80 or LA1 == 81 or LA1 == 82 or LA1 == 83 or LA1 == 84 or LA1 == 85 or LA1 == 86:
-                alt1 = 2
-            elif LA1 == 88 or LA1 == 89 or LA1 == 90:
-                alt1 = 3
-            else:
-                nvae = NoViableAltException("", 1, 0, self.input)
-
-                raise nvae
-
-            if alt1 == 1:
-                # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:138:15: ( 'A' .. 'G' )
-                pass 
-                # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:138:15: ( 'A' .. 'G' )
-                # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:138:16: 'A' .. 'G'
-                pass 
-                self.matchRange(65, 71)
-
-
-
-
-
-            elif alt1 == 2:
-                # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:138:28: ( 'I' .. 'V' )
-                pass 
-                # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:138:28: ( 'I' .. 'V' )
-                # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:138:29: 'I' .. 'V'
-                pass 
-                self.matchRange(73, 86)
-
-
-
-
-
-            elif alt1 == 3:
-                # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:138:43: ( 'X' .. 'Z' )
-                pass 
-                # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:138:43: ( 'X' .. 'Z' )
-                # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:138:44: 'X' .. 'Z'
-                pass 
-                self.matchRange(88, 90)
-
-
-
-
-
-
-        finally:
-
-            pass
-
-    # $ANTLR end "HGLETTERALL"
-
-
-
-    # $ANTLR start "LETTER"
-    def mLETTER(self, ):
-
-        try:
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:140:13: ( LWLETTER | HGLETTER )
-            alt2 = 2
-            LA2_0 = self.input.LA(1)
-
-            if ((97 <= LA2_0 <= 122)) :
-                alt2 = 1
-            elif ((65 <= LA2_0 <= 90)) :
-                alt2 = 2
-            else:
-                nvae = NoViableAltException("", 2, 0, self.input)
-
-                raise nvae
-
-            if alt2 == 1:
-                # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:140:15: LWLETTER
-                pass 
-                self.mLWLETTER()
-
-
-            elif alt2 == 2:
-                # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:140:26: HGLETTER
-                pass 
-                self.mHGLETTER()
-
-
-
-        finally:
-
-            pass
-
-    # $ANTLR end "LETTER"
-
-
-
-    # $ANTLR start "INT"
-    def mINT(self, ):
-
-        try:
-            _type = INT
-            _channel = DEFAULT_CHANNEL
-
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:144:5: ( ( '0' | ( ( '1' .. '9' ) ( DIGIT )* ) ) )
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:144:7: ( '0' | ( ( '1' .. '9' ) ( DIGIT )* ) )
-            pass 
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:144:7: ( '0' | ( ( '1' .. '9' ) ( DIGIT )* ) )
-            alt4 = 2
-            LA4_0 = self.input.LA(1)
-
-            if (LA4_0 == 48) :
-                alt4 = 1
-            elif ((49 <= LA4_0 <= 57)) :
-                alt4 = 2
-            else:
-                nvae = NoViableAltException("", 4, 0, self.input)
-
-                raise nvae
-
-            if alt4 == 1:
-                # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:144:8: '0'
-                pass 
-                self.match(48)
-
-
-            elif alt4 == 2:
-                # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:144:14: ( ( '1' .. '9' ) ( DIGIT )* )
-                pass 
-                # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:144:14: ( ( '1' .. '9' ) ( DIGIT )* )
-                # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:144:15: ( '1' .. '9' ) ( DIGIT )*
-                pass 
-                # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:144:15: ( '1' .. '9' )
-                # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:144:16: '1' .. '9'
-                pass 
-                self.matchRange(49, 57)
-
-
-
-                # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:144:25: ( DIGIT )*
-                while True: #loop3
-                    alt3 = 2
-                    LA3_0 = self.input.LA(1)
-
-                    if ((48 <= LA3_0 <= 57)) :
-                        alt3 = 1
-
-
-                    if alt3 == 1:
-                        # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:144:25: DIGIT
-                        pass 
-                        self.mDIGIT()
-
-
-                    else:
-                        break #loop3
-
-
-
-
-
-
-
-
-
-            self._state.type = _type
-            self._state.channel = _channel
-
-        finally:
-
-            pass
-
-    # $ANTLR end "INT"
-
-
-
-    # $ANTLR start "TRUE"
-    def mTRUE(self, ):
-
-        try:
-            _type = TRUE
-            _channel = DEFAULT_CHANNEL
-
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:148:6: ( 'True' | 'true' )
-            alt5 = 2
-            LA5_0 = self.input.LA(1)
-
-            if (LA5_0 == 84) :
-                alt5 = 1
-            elif (LA5_0 == 116) :
-                alt5 = 2
-            else:
-                nvae = NoViableAltException("", 5, 0, self.input)
-
-                raise nvae
-
-            if alt5 == 1:
-                # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:148:8: 'True'
-                pass 
-                self.match("True")
-
-
-            elif alt5 == 2:
-                # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:148:17: 'true'
-                pass 
-                self.match("true")
-
-
-            self._state.type = _type
-            self._state.channel = _channel
-
-        finally:
-
-            pass
-
-    # $ANTLR end "TRUE"
-
-
-
-    # $ANTLR start "FALSE"
-    def mFALSE(self, ):
-
-        try:
-            _type = FALSE
-            _channel = DEFAULT_CHANNEL
-
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:149:7: ( 'False' | 'false' )
-            alt6 = 2
-            LA6_0 = self.input.LA(1)
-
-            if (LA6_0 == 70) :
-                alt6 = 1
-            elif (LA6_0 == 102) :
-                alt6 = 2
-            else:
-                nvae = NoViableAltException("", 6, 0, self.input)
-
-                raise nvae
-
-            if alt6 == 1:
-                # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:149:9: 'False'
-                pass 
-                self.match("False")
-
-
-            elif alt6 == 2:
-                # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:149:19: 'false'
-                pass 
-                self.match("false")
-
-
-            self._state.type = _type
-            self._state.channel = _channel
-
-        finally:
-
-            pass
-
-    # $ANTLR end "FALSE"
-
-
-
-    # $ANTLR start "PROP"
-    def mPROP(self, ):
-
-        try:
-            _type = PROP
-            _channel = DEFAULT_CHANNEL
-
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:152:7: ( ( ( LWLETTER | HGLETTERALL ) ( '_' | LETTER | DIGIT )* ) )
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:152:9: ( ( LWLETTER | HGLETTERALL ) ( '_' | LETTER | DIGIT )* )
-            pass 
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:152:9: ( ( LWLETTER | HGLETTERALL ) ( '_' | LETTER | DIGIT )* )
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:152:10: ( LWLETTER | HGLETTERALL ) ( '_' | LETTER | DIGIT )*
-            pass 
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:152:10: ( LWLETTER | HGLETTERALL )
-            alt7 = 2
-            LA7_0 = self.input.LA(1)
-
-            if ((97 <= LA7_0 <= 122)) :
-                alt7 = 1
-            elif ((65 <= LA7_0 <= 71) or (73 <= LA7_0 <= 86) or (88 <= LA7_0 <= 90)) :
-                alt7 = 2
-            else:
-                nvae = NoViableAltException("", 7, 0, self.input)
-
-                raise nvae
-
-            if alt7 == 1:
-                # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:152:11: LWLETTER
-                pass 
-                self.mLWLETTER()
-
-
-            elif alt7 == 2:
-                # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:152:22: HGLETTERALL
-                pass 
-                self.mHGLETTERALL()
-
-
-
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:152:34: ( '_' | LETTER | DIGIT )*
-            while True: #loop8
-                alt8 = 4
-                LA8 = self.input.LA(1)
-                if LA8 == 95:
-                    alt8 = 1
-                elif LA8 == 65 or LA8 == 66 or LA8 == 67 or LA8 == 68 or LA8 == 69 or LA8 == 70 or LA8 == 71 or LA8 == 72 or LA8 == 73 or LA8 == 74 or LA8 == 75 or LA8 == 76 or LA8 == 77 or LA8 == 78 or LA8 == 79 or LA8 == 80 or LA8 == 81 or LA8 == 82 or LA8 == 83 or LA8 == 84 or LA8 == 85 or LA8 == 86 or LA8 == 87 or LA8 == 88 or LA8 == 89 or LA8 == 90 or LA8 == 97 or LA8 == 98 or LA8 == 99 or LA8 == 100 or LA8 == 101 or LA8 == 102 or LA8 == 103 or LA8 == 104 or LA8 == 105 or LA8 == 106 or LA8 == 107 or LA8 == 108 or LA8 == 109 or LA8 == 110 or LA8 == 111 or LA8 == 112 or LA8 == 113 or LA8 == 114 or LA8 == 115 or LA8 == 116 or LA8 == 117 or LA8 == 118 or LA8 == 119 or LA8 == 120 or LA8 == 121 or LA8 == 122:
-                    alt8 = 2
-                elif LA8 == 48 or LA8 == 49 or LA8 == 50 or LA8 == 51 or LA8 == 52 or LA8 == 53 or LA8 == 54 or LA8 == 55 or LA8 == 56 or LA8 == 57:
-                    alt8 = 3
-
-                if alt8 == 1:
-                    # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:152:35: '_'
-                    pass 
-                    self.match(95)
-
-
-                elif alt8 == 2:
-                    # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:152:41: LETTER
-                    pass 
-                    self.mLETTER()
-
-
-                elif alt8 == 3:
-                    # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:152:50: DIGIT
-                    pass 
-                    self.mDIGIT()
-
-
-                else:
-                    break #loop8
-
-
-
-            #action start
-                 
-            if str(self.text).lower() not in ('true', 'false'):
-                self.alphabet.add(str(self.text));
-                
-            #action end
-
-
-
-            self._state.type = _type
-            self._state.channel = _channel
-
-        finally:
-
-            pass
-
-    # $ANTLR end "PROP"
-
-
-
-    # $ANTLR start "LINECMT"
-    def mLINECMT(self, ):
-
-        try:
-            _type = LINECMT
-            _channel = DEFAULT_CHANNEL
-
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:160:9: ( ( '//' ) (~ ( '\\n' | '\\r' ) )* )
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:160:11: ( '//' ) (~ ( '\\n' | '\\r' ) )*
-            pass 
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:160:11: ( '//' )
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:160:12: '//'
-            pass 
-            self.match("//")
-
-
-
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:160:17: (~ ( '\\n' | '\\r' ) )*
-            while True: #loop9
-                alt9 = 2
-                LA9_0 = self.input.LA(1)
-
-                if ((0 <= LA9_0 <= 9) or (11 <= LA9_0 <= 12) or (14 <= LA9_0 <= 65535)) :
-                    alt9 = 1
-
-
-                if alt9 == 1:
-                    # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:160:18: ~ ( '\\n' | '\\r' )
-                    pass 
-                    if (0 <= self.input.LA(1) <= 9) or (11 <= self.input.LA(1) <= 12) or (14 <= self.input.LA(1) <= 65535):
-                        self.input.consume()
-                    else:
-                        mse = MismatchedSetException(None, self.input)
-                        self.recover(mse)
-                        raise mse
-
-
-
-                else:
-                    break #loop9
-            #action start
-            self.skip()
-            #action end
-
-
-
-            self._state.type = _type
-            self._state.channel = _channel
-
-        finally:
-
-            pass
-
-    # $ANTLR end "LINECMT"
-
-
-
-    # $ANTLR start "WS"
-    def mWS(self, ):
-
-        try:
-            _type = WS
-            _channel = DEFAULT_CHANNEL
-
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:165:5: ( ( ( '\\n' | '\\r' | '\\f' | '\\t' | ' ' )+ ) )
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:165:7: ( ( '\\n' | '\\r' | '\\f' | '\\t' | ' ' )+ )
-            pass 
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:165:7: ( ( '\\n' | '\\r' | '\\f' | '\\t' | ' ' )+ )
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:165:8: ( '\\n' | '\\r' | '\\f' | '\\t' | ' ' )+
-            pass 
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:165:8: ( '\\n' | '\\r' | '\\f' | '\\t' | ' ' )+
-            cnt10 = 0
-            while True: #loop10
-                alt10 = 2
-                LA10_0 = self.input.LA(1)
-
-                if ((9 <= LA10_0 <= 10) or (12 <= LA10_0 <= 13) or LA10_0 == 32) :
-                    alt10 = 1
-
-
-                if alt10 == 1:
-                    # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:
-                    pass 
-                    if (9 <= self.input.LA(1) <= 10) or (12 <= self.input.LA(1) <= 13) or self.input.LA(1) == 32:
-                        self.input.consume()
-                    else:
-                        mse = MismatchedSetException(None, self.input)
-                        self.recover(mse)
-                        raise mse
-
-
-
-                else:
-                    if cnt10 >= 1:
-                        break #loop10
-
-                    eee = EarlyExitException(10, self.input)
-                    raise eee
-
-                cnt10 += 1
-
-
-
-            #action start
-            self.skip()
-            #action end
-
-
-
-            self._state.type = _type
-            self._state.channel = _channel
-
-        finally:
-
-            pass
-
-    # $ANTLR end "WS"
-
-
-
-    def mTokens(self):
-        # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:1:8: ( AND | OR | NOT | HOLD | WITHIN | CONCAT | T__21 | T__22 | T__23 | T__24 | T__25 | T__26 | INT | TRUE | FALSE | PROP | LINECMT | WS )
-        alt11 = 18
-        alt11 = self.dfa11.predict(self.input)
-        if alt11 == 1:
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:1:10: AND
-            pass 
-            self.mAND()
-
-
-        elif alt11 == 2:
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:1:14: OR
-            pass 
-            self.mOR()
-
-
-        elif alt11 == 3:
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:1:17: NOT
-            pass 
-            self.mNOT()
-
-
-        elif alt11 == 4:
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:1:21: HOLD
-            pass 
-            self.mHOLD()
-
-
-        elif alt11 == 5:
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:1:26: WITHIN
-            pass 
-            self.mWITHIN()
-
-
-        elif alt11 == 6:
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:1:33: CONCAT
-            pass 
-            self.mCONCAT()
-
-
-        elif alt11 == 7:
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:1:40: T__21
-            pass 
-            self.mT__21()
-
-
-        elif alt11 == 8:
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:1:46: T__22
-            pass 
-            self.mT__22()
-
-
-        elif alt11 == 9:
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:1:52: T__23
-            pass 
-            self.mT__23()
-
-
-        elif alt11 == 10:
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:1:58: T__24
-            pass 
-            self.mT__24()
-
-
-        elif alt11 == 11:
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:1:64: T__25
-            pass 
-            self.mT__25()
-
-
-        elif alt11 == 12:
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:1:70: T__26
-            pass 
-            self.mT__26()
-
-
-        elif alt11 == 13:
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:1:76: INT
-            pass 
-            self.mINT()
-
-
-        elif alt11 == 14:
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:1:80: TRUE
-            pass 
-            self.mTRUE()
-
-
-        elif alt11 == 15:
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:1:85: FALSE
-            pass 
-            self.mFALSE()
-
-
-        elif alt11 == 16:
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:1:91: PROP
-            pass 
-            self.mPROP()
-
-
-        elif alt11 == 17:
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:1:96: LINECMT
-            pass 
-            self.mLINECMT()
-
-
-        elif alt11 == 18:
-            # C:\\Users\\Cristian\\Dropbox\\work\\workspace\\TWTL\\src\\twtl.g:1:104: WS
-            pass 
-            self.mWS()
-
-
-
-
-
-
-
-    # lookup tables for DFA #11
-
-    DFA11_eot = DFA.unpack(
-        u"\16\uffff\4\22\3\uffff\10\22\2\41\2\22\1\uffff\2\44\1\uffff"
-        )
-
-    DFA11_eof = DFA.unpack(
-        u"\45\uffff"
-        )
-
-    DFA11_min = DFA.unpack(
-        u"\1\11\15\uffff\2\162\2\141\3\uffff\2\165\2\154\2\145\2\163\2\60"
-        u"\2\145\1\uffff\2\60\1\uffff"
-        )
-
-    DFA11_max = DFA.unpack(
-        u"\1\174\15\uffff\2\162\2\141\3\uffff\2\165\2\154\2\145\2\163\2"
-        u"\172\2\145\1\uffff\2\172\1\uffff"
-        )
-
-    DFA11_accept = DFA.unpack(
-        u"\1\uffff\1\1\1\2\1\3\1\4\1\5\1\6\1\7\1\10\1\11\1\12\1\13\1\14"
-        u"\1\15\4\uffff\1\20\1\21\1\22\14\uffff\1\16\2\uffff\1\17"
-        )
-
-    DFA11_special = DFA.unpack(
-        u"\45\uffff"
-        )
-
-            
-    DFA11_transition = [
-        DFA.unpack(u"\2\24\1\uffff\2\24\22\uffff\1\24\1\3\4\uffff\1\1\1"
-        u"\uffff\1\13\1\14\1\6\1\uffff\1\12\2\uffff\1\23\12\15\7\uffff\5"
-        u"\22\1\20\1\22\1\4\13\22\1\16\2\22\1\5\3\22\1\10\1\uffff\1\11\1"
-        u"\7\2\uffff\5\22\1\21\15\22\1\17\6\22\1\uffff\1\2"),
-        DFA.unpack(u""),
-        DFA.unpack(u""),
-        DFA.unpack(u""),
-        DFA.unpack(u""),
-        DFA.unpack(u""),
-        DFA.unpack(u""),
-        DFA.unpack(u""),
-        DFA.unpack(u""),
-        DFA.unpack(u""),
-        DFA.unpack(u""),
-        DFA.unpack(u""),
-        DFA.unpack(u""),
-        DFA.unpack(u""),
-        DFA.unpack(u"\1\25"),
-        DFA.unpack(u"\1\26"),
-        DFA.unpack(u"\1\27"),
-        DFA.unpack(u"\1\30"),
-        DFA.unpack(u""),
-        DFA.unpack(u""),
-        DFA.unpack(u""),
-        DFA.unpack(u"\1\31"),
-        DFA.unpack(u"\1\32"),
-        DFA.unpack(u"\1\33"),
-        DFA.unpack(u"\1\34"),
-        DFA.unpack(u"\1\35"),
-        DFA.unpack(u"\1\36"),
-        DFA.unpack(u"\1\37"),
-        DFA.unpack(u"\1\40"),
-        DFA.unpack(u"\12\22\7\uffff\32\22\4\uffff\1\22\1\uffff\32\22"),
-        DFA.unpack(u"\12\22\7\uffff\32\22\4\uffff\1\22\1\uffff\32\22"),
-        DFA.unpack(u"\1\42"),
-        DFA.unpack(u"\1\43"),
-        DFA.unpack(u""),
-        DFA.unpack(u"\12\22\7\uffff\32\22\4\uffff\1\22\1\uffff\32\22"),
-        DFA.unpack(u"\12\22\7\uffff\32\22\4\uffff\1\22\1\uffff\32\22"),
-        DFA.unpack(u"")
-    ]
-
-    # class definition for DFA #11
-
-    class DFA11(DFA):
-        pass
-
-
- 
-
-
-
-def main(argv, stdin=sys.stdin, stdout=sys.stdout, stderr=sys.stderr):
-    from antlr3.main import LexerMain
-    main = LexerMain(twtlLexer)
-    main.stdin = stdin
-    main.stdout = stdout
-    main.stderr = stderr
-    main.execute(argv)
-
-
-if __name__ == '__main__':
-    main(sys.argv)
