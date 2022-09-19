@@ -34,13 +34,13 @@ class twtlVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by twtlParser#expr.
-    def visitExpr(self, ctx:twtlParser.ExprContext):
+    # Visit a parse tree produced by twtlParser#booleanExpr.
+    def visitBooleanExpr(self, ctx:twtlParser.BooleanExprContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by twtlParser#booleanExpr.
-    def visitBooleanExpr(self, ctx:twtlParser.BooleanExprContext):
+    # Visit a parse tree produced by twtlParser#expr.
+    def visitExpr(self, ctx:twtlParser.ExprContext):
         return self.visitChildren(ctx)
 
 

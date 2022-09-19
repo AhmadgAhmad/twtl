@@ -37,21 +37,21 @@ class twtlListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by twtlParser#expr.
-    def enterExpr(self, ctx:twtlParser.ExprContext):
-        pass
-
-    # Exit a parse tree produced by twtlParser#expr.
-    def exitExpr(self, ctx:twtlParser.ExprContext):
-        pass
-
-
     # Enter a parse tree produced by twtlParser#booleanExpr.
     def enterBooleanExpr(self, ctx:twtlParser.BooleanExprContext):
         pass
 
     # Exit a parse tree produced by twtlParser#booleanExpr.
     def exitBooleanExpr(self, ctx:twtlParser.BooleanExprContext):
+        pass
+
+
+    # Enter a parse tree produced by twtlParser#expr.
+    def enterExpr(self, ctx:twtlParser.ExprContext):
+        pass
+
+    # Exit a parse tree produced by twtlParser#expr.
+    def exitExpr(self, ctx:twtlParser.ExprContext):
         pass
 
 
