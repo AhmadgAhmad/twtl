@@ -42,51 +42,32 @@ license_text='''
 
 
 //parser entry point
-formula: // TODO [where @]
-    '(' child=formula ')'
-    |(op=HOLD '^' duration=INT)? (negated=NOT)? prop=booleanExpr //( BOOLEAN | PROP | booleanExpr) // left prop as the general propositions and add predicates (booleanExpr) 
-    | left=formula op=AND right=formula
+formula:
+      op='(' child=formula ')'
     | left=formula op=OR right=formula
-    | op=NOT child=formula
+    | left=formula op=AND right=formula
     | left=formula op=CONCAT right=formula
-    | op='[' child=formula ']' '^' '[' low=INT ',' high=INT ']' // within 
+    | (op=HOLD '^' duration=RATIONAL)? (negated=NOT)? prop=booleanExpr//(TRUE | FALSE | PROP)
+    | op=NOT child=formula
+    | op='[' child=formula ']' '^' '[' low=RATIONAL ',' high=RATIONAL ']'
     ;
 
-/*TODO: define a labeling expression. Maybe */
-// Expression to define the (linear) predicates: catch
+
+booleanExpr:
+    op = FALSE
+    | op = TRUE
+    | op = VARIABLE
+    |left=expr op=( '<' | '<=' | '=' | '>=' | '>' ) right=expr
+    ;
 expr:
-        ( '-(' | '(' ) expr ')'
+         ( '-(' | '(' ) expr ')'
     |   <assoc=right>   expr '^' expr
     |   VARIABLE '(' expr ')'
-    |   expr ( 'prd' | '/' ) expr
-    |   expr ( '+' | '-' ) expr
-    |   RATIONAL
+    |   expr ( '*' | '/' ) expr
+    | expr ( '+' | '-' ) expr
+    | RATIONAL
     |   VARIABLE 
-    ;
-
-// Boolean expression
-booleanExpr:
-     left=expr op=( '<' | '<=' | '=' | '>=' | '>' ) right=expr
-    |op = BOOLEAN
-    |op = PROP
-    ;
-
-BOOLEAN : 'true' | 'True' | 'false' | 'False' ;
-VARIABLE : ((LWLETTER | HGLETTERALL)('_' | LETTER | DIGIT)*);
-RATIONAL : ('-')? [0-9]* ('.')? [0-9]+ ( 'E' | 'E-' )? [0-9]* ;
-
-// Tokens: 
-// Boolean operators
-AND : '&' | '&&' | '/\\';
-OR  : '|' | '||' | '\\/';
-NOT : '!' | '~';
-
-// Temporal operators
-HOLD   : 'H';
-//WITHIN : 'W';
-CONCAT : '*';
-PROP  : ((LWLETTER | HGLETTERALL)('_' | LETTER | DIGIT)*); // Basically to define such proposition A_ or a_ or AH or a1, etc...
-
+    ; 
 //fragments
 fragment
 DIGIT       : ('0'..'9'); //digit
@@ -100,10 +81,32 @@ HGLETTERALL : ('A'..'G') | ('I' .. 'V') | ('X' .. 'Z');
 fragment
 LETTER      : LWLETTER | HGLETTER; //letter
 
+//tokens
+// Boolean operators
+AND : '&' | '&&';
+OR  : '|' | '||';
+NOT : '!' | '~';
+
+// Temporal operators
+HOLD   : 'H';
+//WITHIN : 'W';
+CONCAT : '.';
+
 //match an integer
-INT : ('0' | (('1'..'9')DIGIT*));
+// INT : ('0' | (('1'..'9')DIGIT*));
+RATIONAL : ('-')? [0-9]* ('.')? [0-9]+ ( 'E' | 'E-' )? [0-9]* ;
+
+//match boolean constants
+TRUE : 'True' | 'true';
+FALSE : 'False' | 'false';
+
+//match a proposition
+// PROP  : ((LWLETTER | HGLETTERALL)('_' | LETTER | DIGIT)*);
+
+VARIABLE : ((LWLETTER | HGLETTERALL)('_' | LETTER | DIGIT)*);
 
 //match a line comment
 LINECMT : ('//')(~('\n'|'\r'))* -> skip; //line comment
+
 //match a whitespace
 WS  : (('\n' | '\r' | '\f' | '\t' | /*'\v' |*/ ' ')+) -> skip; //whitespaces
