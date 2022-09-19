@@ -28,8 +28,8 @@ license_text='''
 import logging
 logger = logging.getLogger(__name__)
 import itertools as it
-from StringIO import StringIO
-
+# from StringIO import StringIO
+from io import StringIO
 import networkx as nx
 
 from lomap import Fsa

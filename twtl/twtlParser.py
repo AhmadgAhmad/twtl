@@ -28,36 +28,35 @@ license_text='''
 def serializedATN():
     with StringIO() as buf:
         buf.write("\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\36")
-        buf.write("W\4\2\t\2\4\3\t\3\4\4\t\4\3\2\3\2\3\2\3\2\3\2\3\2\3\2")
-        buf.write("\3\2\5\2\21\n\2\3\2\5\2\24\n\2\3\2\3\2\3\2\3\2\3\2\3\2")
-        buf.write("\3\2\3\2\3\2\3\2\3\2\3\2\3\2\5\2#\n\2\3\2\3\2\3\2\3\2")
-        buf.write("\3\2\3\2\3\2\3\2\3\2\7\2.\n\2\f\2\16\2\61\13\2\3\3\3\3")
-        buf.write("\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\5\3?\n\3\3\3")
-        buf.write("\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\7\3J\n\3\f\3\16\3M\13")
-        buf.write("\3\3\4\3\4\3\4\3\4\3\4\3\4\5\4U\n\4\3\4\2\4\2\4\5\2\4")
-        buf.write("\6\2\6\4\2\3\3\t\t\3\2\n\13\3\2\f\r\3\2\16\22\2c\2\"\3")
-        buf.write("\2\2\2\4>\3\2\2\2\6T\3\2\2\2\b\t\b\2\1\2\t\n\7\3\2\2\n")
-        buf.write("\13\5\2\2\2\13\f\7\4\2\2\f#\3\2\2\2\r\16\7\31\2\2\16\17")
-        buf.write("\7\5\2\2\17\21\7\34\2\2\20\r\3\2\2\2\20\21\3\2\2\2\21")
-        buf.write("\23\3\2\2\2\22\24\7\30\2\2\23\22\3\2\2\2\23\24\3\2\2\2")
-        buf.write("\24\25\3\2\2\2\25#\5\6\4\2\26\27\7\30\2\2\27#\5\2\2\5")
-        buf.write("\30\31\7\6\2\2\31\32\5\2\2\2\32\33\7\7\2\2\33\34\7\5\2")
-        buf.write("\2\34\35\7\6\2\2\35\36\7\34\2\2\36\37\7\b\2\2\37 \7\34")
-        buf.write("\2\2 !\7\7\2\2!#\3\2\2\2\"\b\3\2\2\2\"\20\3\2\2\2\"\26")
-        buf.write("\3\2\2\2\"\30\3\2\2\2#/\3\2\2\2$%\f\7\2\2%&\7\26\2\2&")
-        buf.write(".\5\2\2\b\'(\f\6\2\2()\7\27\2\2).\5\2\2\7*+\f\4\2\2+,")
-        buf.write("\7\32\2\2,.\5\2\2\5-$\3\2\2\2-\'\3\2\2\2-*\3\2\2\2.\61")
-        buf.write("\3\2\2\2/-\3\2\2\2/\60\3\2\2\2\60\3\3\2\2\2\61/\3\2\2")
-        buf.write("\2\62\63\b\3\1\2\63\64\t\2\2\2\64\65\5\4\3\2\65\66\7\4")
-        buf.write("\2\2\66?\3\2\2\2\678\7\24\2\289\7\3\2\29:\5\4\3\2:;\7")
-        buf.write("\4\2\2;?\3\2\2\2<?\7\25\2\2=?\7\24\2\2>\62\3\2\2\2>\67")
-        buf.write("\3\2\2\2><\3\2\2\2>=\3\2\2\2?K\3\2\2\2@A\f\b\2\2AB\7\5")
-        buf.write("\2\2BJ\5\4\3\bCD\f\6\2\2DE\t\3\2\2EJ\5\4\3\7FG\f\5\2\2")
-        buf.write("GH\t\4\2\2HJ\5\4\3\6I@\3\2\2\2IC\3\2\2\2IF\3\2\2\2JM\3")
-        buf.write("\2\2\2KI\3\2\2\2KL\3\2\2\2L\5\3\2\2\2MK\3\2\2\2NO\5\4")
-        buf.write("\3\2OP\t\5\2\2PQ\5\4\3\2QU\3\2\2\2RU\7\23\2\2SU\7\33\2")
-        buf.write("\2TN\3\2\2\2TR\3\2\2\2TS\3\2\2\2U\7\3\2\2\2\13\20\23\"")
-        buf.write("-/>IKT")
+        buf.write("V\4\2\t\2\4\3\t\3\4\4\t\4\3\2\3\2\3\2\3\2\3\2\3\2\3\2")
+        buf.write("\3\2\3\2\3\2\5\2\23\n\2\3\2\3\2\3\2\3\2\3\2\3\2\3\2\3")
+        buf.write("\2\3\2\3\2\3\2\3\2\3\2\5\2\"\n\2\3\2\3\2\3\2\3\2\3\2\3")
+        buf.write("\2\3\2\3\2\3\2\7\2-\n\2\f\2\16\2\60\13\2\3\3\3\3\3\3\3")
+        buf.write("\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\5\3>\n\3\3\3\3\3\3")
+        buf.write("\3\3\3\3\3\3\3\3\3\3\3\3\3\7\3I\n\3\f\3\16\3L\13\3\3\4")
+        buf.write("\3\4\3\4\3\4\3\4\3\4\5\4T\n\4\3\4\2\4\2\4\5\2\4\6\2\6")
+        buf.write("\4\2\3\3\t\t\3\2\n\13\3\2\f\r\3\2\16\22\2a\2!\3\2\2\2")
+        buf.write("\4=\3\2\2\2\6S\3\2\2\2\b\t\b\2\1\2\t\n\7\3\2\2\n\13\5")
+        buf.write("\2\2\2\13\f\7\4\2\2\f\"\3\2\2\2\r\16\7\31\2\2\16\17\7")
+        buf.write("\5\2\2\17\20\7\34\2\2\20\22\3\2\2\2\21\23\7\30\2\2\22")
+        buf.write("\21\3\2\2\2\22\23\3\2\2\2\23\24\3\2\2\2\24\"\5\6\4\2\25")
+        buf.write("\26\7\30\2\2\26\"\5\2\2\5\27\30\7\6\2\2\30\31\5\2\2\2")
+        buf.write("\31\32\7\7\2\2\32\33\7\5\2\2\33\34\7\6\2\2\34\35\7\34")
+        buf.write("\2\2\35\36\7\b\2\2\36\37\7\34\2\2\37 \7\7\2\2 \"\3\2\2")
+        buf.write("\2!\b\3\2\2\2!\r\3\2\2\2!\25\3\2\2\2!\27\3\2\2\2\".\3")
+        buf.write("\2\2\2#$\f\7\2\2$%\7\26\2\2%-\5\2\2\b&\'\f\6\2\2\'(\7")
+        buf.write("\27\2\2(-\5\2\2\7)*\f\4\2\2*+\7\32\2\2+-\5\2\2\5,#\3\2")
+        buf.write("\2\2,&\3\2\2\2,)\3\2\2\2-\60\3\2\2\2.,\3\2\2\2./\3\2\2")
+        buf.write("\2/\3\3\2\2\2\60.\3\2\2\2\61\62\b\3\1\2\62\63\t\2\2\2")
+        buf.write("\63\64\5\4\3\2\64\65\7\4\2\2\65>\3\2\2\2\66\67\7\24\2")
+        buf.write("\2\678\7\3\2\289\5\4\3\29:\7\4\2\2:>\3\2\2\2;>\7\25\2")
+        buf.write("\2<>\7\24\2\2=\61\3\2\2\2=\66\3\2\2\2=;\3\2\2\2=<\3\2")
+        buf.write("\2\2>J\3\2\2\2?@\f\b\2\2@A\7\5\2\2AI\5\4\3\bBC\f\6\2\2")
+        buf.write("CD\t\3\2\2DI\5\4\3\7EF\f\5\2\2FG\t\4\2\2GI\5\4\3\6H?\3")
+        buf.write("\2\2\2HB\3\2\2\2HE\3\2\2\2IL\3\2\2\2JH\3\2\2\2JK\3\2\2")
+        buf.write("\2K\5\3\2\2\2LJ\3\2\2\2MN\5\4\3\2NO\t\5\2\2OP\5\4\3\2")
+        buf.write("PT\3\2\2\2QT\7\23\2\2RT\7\33\2\2SM\3\2\2\2SQ\3\2\2\2S")
+        buf.write("R\3\2\2\2T\7\3\2\2\2\n\22!,.=HJS")
         return buf.getvalue()
 
 
@@ -204,10 +203,10 @@ class twtlParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 32
+            self.state = 31
             self._errHandler.sync(self)
-            la_ = self._interp.adaptivePredict(self._input,2,self._ctx)
-            if la_ == 1:
+            token = self._input.LA(1)
+            if token in [twtlParser.T__0]:
                 self.state = 7
                 self.match(twtlParser.T__0)
                 self.state = 8
@@ -215,84 +214,76 @@ class twtlParser ( Parser ):
                 self.state = 9
                 self.match(twtlParser.T__1)
                 pass
-
-            elif la_ == 2:
-                self.state = 14
-                self._errHandler.sync(self)
-                _la = self._input.LA(1)
-                if _la==twtlParser.HOLD:
-                    self.state = 11
-                    localctx.op = self.match(twtlParser.HOLD)
-                    self.state = 12
-                    self.match(twtlParser.T__2)
-                    self.state = 13
-                    localctx.duration = self.match(twtlParser.INT)
-
-
-                self.state = 17
+            elif token in [twtlParser.HOLD]:
+                self.state = 11
+                localctx.op = self.match(twtlParser.HOLD)
+                self.state = 12
+                self.match(twtlParser.T__2)
+                self.state = 13
+                localctx.duration = self.match(twtlParser.INT)
+                self.state = 16
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
                 if _la==twtlParser.NOT:
-                    self.state = 16
+                    self.state = 15
                     localctx.negated = self.match(twtlParser.NOT)
 
 
-                self.state = 19
+                self.state = 18
                 localctx.prop = self.booleanExpr()
                 pass
-
-            elif la_ == 3:
-                self.state = 20
+            elif token in [twtlParser.NOT]:
+                self.state = 19
                 localctx.op = self.match(twtlParser.NOT)
-                self.state = 21
+                self.state = 20
                 localctx.child = self.formula(3)
                 pass
-
-            elif la_ == 4:
-                self.state = 22
+            elif token in [twtlParser.T__3]:
+                self.state = 21
                 localctx.op = self.match(twtlParser.T__3)
-                self.state = 23
+                self.state = 22
                 localctx.child = self.formula(0)
-                self.state = 24
+                self.state = 23
                 self.match(twtlParser.T__4)
-                self.state = 25
+                self.state = 24
                 self.match(twtlParser.T__2)
-                self.state = 26
+                self.state = 25
                 self.match(twtlParser.T__3)
-                self.state = 27
+                self.state = 26
                 localctx.low = self.match(twtlParser.INT)
-                self.state = 28
+                self.state = 27
                 self.match(twtlParser.T__5)
-                self.state = 29
+                self.state = 28
                 localctx.high = self.match(twtlParser.INT)
-                self.state = 30
+                self.state = 29
                 self.match(twtlParser.T__4)
                 pass
-
+            else:
+                raise NoViableAltException(self)
 
             self._ctx.stop = self._input.LT(-1)
-            self.state = 45
+            self.state = 44
             self._errHandler.sync(self)
-            _alt = self._interp.adaptivePredict(self._input,4,self._ctx)
+            _alt = self._interp.adaptivePredict(self._input,3,self._ctx)
             while _alt!=2 and _alt!=ATN.INVALID_ALT_NUMBER:
                 if _alt==1:
                     if self._parseListeners is not None:
                         self.triggerExitRuleEvent()
                     _prevctx = localctx
-                    self.state = 43
+                    self.state = 42
                     self._errHandler.sync(self)
-                    la_ = self._interp.adaptivePredict(self._input,3,self._ctx)
+                    la_ = self._interp.adaptivePredict(self._input,2,self._ctx)
                     if la_ == 1:
                         localctx = twtlParser.FormulaContext(self, _parentctx, _parentState)
                         localctx.left = _prevctx
                         self.pushNewRecursionContext(localctx, _startState, self.RULE_formula)
-                        self.state = 34
+                        self.state = 33
                         if not self.precpred(self._ctx, 5):
                             from antlr4.error.Errors import FailedPredicateException
                             raise FailedPredicateException(self, "self.precpred(self._ctx, 5)")
-                        self.state = 35
+                        self.state = 34
                         localctx.op = self.match(twtlParser.AND)
-                        self.state = 36
+                        self.state = 35
                         localctx.right = self.formula(6)
                         pass
 
@@ -300,13 +291,13 @@ class twtlParser ( Parser ):
                         localctx = twtlParser.FormulaContext(self, _parentctx, _parentState)
                         localctx.left = _prevctx
                         self.pushNewRecursionContext(localctx, _startState, self.RULE_formula)
-                        self.state = 37
+                        self.state = 36
                         if not self.precpred(self._ctx, 4):
                             from antlr4.error.Errors import FailedPredicateException
                             raise FailedPredicateException(self, "self.precpred(self._ctx, 4)")
-                        self.state = 38
+                        self.state = 37
                         localctx.op = self.match(twtlParser.OR)
-                        self.state = 39
+                        self.state = 38
                         localctx.right = self.formula(5)
                         pass
 
@@ -314,20 +305,20 @@ class twtlParser ( Parser ):
                         localctx = twtlParser.FormulaContext(self, _parentctx, _parentState)
                         localctx.left = _prevctx
                         self.pushNewRecursionContext(localctx, _startState, self.RULE_formula)
-                        self.state = 40
+                        self.state = 39
                         if not self.precpred(self._ctx, 2):
                             from antlr4.error.Errors import FailedPredicateException
                             raise FailedPredicateException(self, "self.precpred(self._ctx, 2)")
-                        self.state = 41
+                        self.state = 40
                         localctx.op = self.match(twtlParser.CONCAT)
-                        self.state = 42
+                        self.state = 41
                         localctx.right = self.formula(3)
                         pass
 
              
-                self.state = 47
+                self.state = 46
                 self._errHandler.sync(self)
-                _alt = self._interp.adaptivePredict(self._input,4,self._ctx)
+                _alt = self._interp.adaptivePredict(self._input,3,self._ctx)
 
         except RecognitionException as re:
             localctx.exception = re
@@ -385,110 +376,110 @@ class twtlParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 60
+            self.state = 59
             self._errHandler.sync(self)
-            la_ = self._interp.adaptivePredict(self._input,5,self._ctx)
+            la_ = self._interp.adaptivePredict(self._input,4,self._ctx)
             if la_ == 1:
-                self.state = 49
+                self.state = 48
                 _la = self._input.LA(1)
                 if not(_la==twtlParser.T__0 or _la==twtlParser.T__6):
                     self._errHandler.recoverInline(self)
                 else:
                     self._errHandler.reportMatch(self)
                     self.consume()
-                self.state = 50
+                self.state = 49
                 self.expr(0)
-                self.state = 51
+                self.state = 50
                 self.match(twtlParser.T__1)
                 pass
 
             elif la_ == 2:
-                self.state = 53
+                self.state = 52
                 self.match(twtlParser.VARIABLE)
-                self.state = 54
+                self.state = 53
                 self.match(twtlParser.T__0)
-                self.state = 55
+                self.state = 54
                 self.expr(0)
-                self.state = 56
+                self.state = 55
                 self.match(twtlParser.T__1)
                 pass
 
             elif la_ == 3:
-                self.state = 58
+                self.state = 57
                 self.match(twtlParser.RATIONAL)
                 pass
 
             elif la_ == 4:
-                self.state = 59
+                self.state = 58
                 self.match(twtlParser.VARIABLE)
                 pass
 
 
             self._ctx.stop = self._input.LT(-1)
-            self.state = 73
+            self.state = 72
             self._errHandler.sync(self)
-            _alt = self._interp.adaptivePredict(self._input,7,self._ctx)
+            _alt = self._interp.adaptivePredict(self._input,6,self._ctx)
             while _alt!=2 and _alt!=ATN.INVALID_ALT_NUMBER:
                 if _alt==1:
                     if self._parseListeners is not None:
                         self.triggerExitRuleEvent()
                     _prevctx = localctx
-                    self.state = 71
+                    self.state = 70
                     self._errHandler.sync(self)
-                    la_ = self._interp.adaptivePredict(self._input,6,self._ctx)
+                    la_ = self._interp.adaptivePredict(self._input,5,self._ctx)
                     if la_ == 1:
                         localctx = twtlParser.ExprContext(self, _parentctx, _parentState)
                         self.pushNewRecursionContext(localctx, _startState, self.RULE_expr)
-                        self.state = 62
+                        self.state = 61
                         if not self.precpred(self._ctx, 6):
                             from antlr4.error.Errors import FailedPredicateException
                             raise FailedPredicateException(self, "self.precpred(self._ctx, 6)")
-                        self.state = 63
+                        self.state = 62
                         self.match(twtlParser.T__2)
-                        self.state = 64
+                        self.state = 63
                         self.expr(6)
                         pass
 
                     elif la_ == 2:
                         localctx = twtlParser.ExprContext(self, _parentctx, _parentState)
                         self.pushNewRecursionContext(localctx, _startState, self.RULE_expr)
-                        self.state = 65
+                        self.state = 64
                         if not self.precpred(self._ctx, 4):
                             from antlr4.error.Errors import FailedPredicateException
                             raise FailedPredicateException(self, "self.precpred(self._ctx, 4)")
-                        self.state = 66
+                        self.state = 65
                         _la = self._input.LA(1)
                         if not(_la==twtlParser.T__7 or _la==twtlParser.T__8):
                             self._errHandler.recoverInline(self)
                         else:
                             self._errHandler.reportMatch(self)
                             self.consume()
-                        self.state = 67
+                        self.state = 66
                         self.expr(5)
                         pass
 
                     elif la_ == 3:
                         localctx = twtlParser.ExprContext(self, _parentctx, _parentState)
                         self.pushNewRecursionContext(localctx, _startState, self.RULE_expr)
-                        self.state = 68
+                        self.state = 67
                         if not self.precpred(self._ctx, 3):
                             from antlr4.error.Errors import FailedPredicateException
                             raise FailedPredicateException(self, "self.precpred(self._ctx, 3)")
-                        self.state = 69
+                        self.state = 68
                         _la = self._input.LA(1)
                         if not(_la==twtlParser.T__9 or _la==twtlParser.T__10):
                             self._errHandler.recoverInline(self)
                         else:
                             self._errHandler.reportMatch(self)
                             self.consume()
-                        self.state = 70
+                        self.state = 69
                         self.expr(4)
                         pass
 
              
-                self.state = 75
+                self.state = 74
                 self._errHandler.sync(self)
-                _alt = self._interp.adaptivePredict(self._input,7,self._ctx)
+                _alt = self._interp.adaptivePredict(self._input,6,self._ctx)
 
         except RecognitionException as re:
             localctx.exception = re
@@ -546,14 +537,14 @@ class twtlParser ( Parser ):
         self.enterRule(localctx, 4, self.RULE_booleanExpr)
         self._la = 0 # Token type
         try:
-            self.state = 82
+            self.state = 81
             self._errHandler.sync(self)
             token = self._input.LA(1)
             if token in [twtlParser.T__0, twtlParser.T__6, twtlParser.VARIABLE, twtlParser.RATIONAL]:
                 self.enterOuterAlt(localctx, 1)
-                self.state = 76
+                self.state = 75
                 localctx.left = self.expr(0)
-                self.state = 77
+                self.state = 76
                 localctx.op = self._input.LT(1)
                 _la = self._input.LA(1)
                 if not((((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << twtlParser.T__11) | (1 << twtlParser.T__12) | (1 << twtlParser.T__13) | (1 << twtlParser.T__14) | (1 << twtlParser.T__15))) != 0)):
@@ -561,17 +552,17 @@ class twtlParser ( Parser ):
                 else:
                     self._errHandler.reportMatch(self)
                     self.consume()
-                self.state = 78
+                self.state = 77
                 localctx.right = self.expr(0)
                 pass
             elif token in [twtlParser.BOOLEAN]:
                 self.enterOuterAlt(localctx, 2)
-                self.state = 80
+                self.state = 79
                 localctx.op = self.match(twtlParser.BOOLEAN)
                 pass
             elif token in [twtlParser.PROP]:
                 self.enterOuterAlt(localctx, 3)
-                self.state = 81
+                self.state = 80
                 localctx.op = self.match(twtlParser.PROP)
                 pass
             else:

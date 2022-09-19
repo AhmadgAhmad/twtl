@@ -36,7 +36,7 @@ def twtl2dfa(formula_ast, props):
             dfa = union(dfa_left, dfa_right)
         elif formula_ast.op == TWTLOperation.AND:
             dfa = intersection(dfa_left, dfa_right)
-        elif formula_ast.op == TWTLOperation.CONCAT):
+        elif formula_ast.op == TWTLOperation.CONCAT:
             dfa = concatenation(dfa_left, dfa_right)
     elif formula_ast.op == TWTLOperation.NOT:
         dfa = complement(twtl2dfa(formula_ast.child))

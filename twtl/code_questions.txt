@@ -5,3 +5,7 @@ Q1:
     - The problem is an atomic proposition is dealt with as a token, and I want to consider a linear predicate as an atomic proposition 
     , we might as well keep the definition as is, and we deal with the labeling function in the TWTL class itself? 
      
+TODO: 
+    - Update TWTL translator, synthesizer based off the updated form of the APs (build off linear predicates)
+    - Configure ANTLR debugger
+    

@@ -30,6 +30,7 @@ from antlr4 import InputStream, CommonTokenStream
 from twtlLexer import twtlLexer
 from twtlParser import twtlParser
 from twtlVisitor import twtlVisitor
+from twtlListener import twtlListener
 
 
 class Operation(object):
@@ -101,8 +102,8 @@ class TWTLFormula(object):
         elif self.op == Operation.WITHIN:
             child_bounds = self.child.bounds()
             assert child_bound[0] <= self.high - self.low, \
-                'Child formula is unfeasible within time window'!
-            return [self.low + child_bounds[0], self.high)
+                'Child formula is unfeasible within time window'
+            return [self.low + child_bounds[0], self.high]
 
     def propositions(self):
         '''Computes the set of propositions involved in the TWTL formula.'''
@@ -186,7 +187,7 @@ class TWTLAbstractSyntaxTreeExtractor(twtlVisitor):
             ret = TWTLFormula(op, duration=duration, proposition=prop,
                               negated=negated)
         elif op == Operation.WITHIN:
-            print ctx.op.text, op
+            print((ctx.op.text, op))
             low = int(ctx.low.text)
             high = int(ctx.high.text)
             ret = TWTLFormula(Operation.WITHIN, child=self.visit(ctx.child),
