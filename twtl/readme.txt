@@ -1,4 +1,4 @@
-$$Setting up ANTLR4 Debugger$$
+<h3>>Setting up ANTLR4 Debugger<h3>
 
 - Set up Antlr viewer extension in you vscode. 
 - In the vscode Setting, specifically launch.json, add the following 
