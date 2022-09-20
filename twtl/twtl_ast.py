@@ -25,7 +25,9 @@ license_text='''
 
 '''
 
+from concurrent.futures import thread
 from antlr4 import InputStream, CommonTokenStream
+from torch import threshold
 
 from twtlLexer import twtlLexer
 from twtlParser import twtlParser
@@ -36,8 +38,8 @@ from twtlListener import twtlListener
 class Operation(object):
     '''TWTL operations'''
     NOP, NOT, OR, AND, HOLD, CONCAT, WITHIN = range(7)
-    opnames = [None, '!', '||', '&&', 'H', '*', 'W']
-    opcodes = {'!': NOT, '&&': AND, '||' : OR, 'H': HOLD, '*': CONCAT,
+    opnames = [None, '!', '||', '&&', 'H', '.', 'W']
+    opcodes = {'!': NOT, '&&': AND, '||' : OR, 'H': HOLD, '.': CONCAT,
                'W': WITHIN}
 
     @classmethod
@@ -67,6 +69,10 @@ class TWTLFormula(object):
             self.duration = kwargs['duration']
             self.proposition = kwargs['proposition']
             self.negated = kwargs['negated']
+            self.predicate = kwargs['predicate']
+            self.relation = kwargs['relation']
+            self.variable = kwargs['variable']
+            self.threshold = kwargs['threshold']
         elif self.op == Operation.WITHIN:
             self.low = kwargs['low']
             self.high = kwargs['high']
@@ -177,15 +183,35 @@ class TWTLAbstractSyntaxTreeExtractor(twtlVisitor):
                               right=self.visit(ctx.right))
         elif op == Operation.NOT:
             ret = TWTLFormula(op, child=self.visit(ctx.child))
-        elif op == Operation.HOLD:
+        elif op == Operation.HOLD: # The base case: 
             duration = 0 if ctx.duration is None else int(ctx.duration.text)
-            if ctx.prop.text.lower() in ('true', 'false'):
-                prop = ctx.prop.text.lower() == 'true'
-            else:
-                prop = ctx.prop.text
-            negated = ctx.negated is not None
-            ret = TWTLFormula(op, duration=duration, proposition=prop,
-                              negated=negated)
+            
+            # If the proposition is based off predicate: 
+            pred_flg = len(ctx.children[3].children) == 3
+            if pred_flg: 
+
+                pred = ctx.children[3]
+                pred_variable = pred.children[0].children[0].symbol.text
+                pred_relation = pred.children[1].symbol.text
+                pred_threshold = float(pred.children[2].children[0].symbol.text)
+                negated = ctx.negated is not None
+                ret = TWTLFormula(op, duration=duration, predicate=pred,
+                                relation = pred_relation,
+                                variable = pred_variable,
+                                threshold = pred_threshold,
+                                proposition = None,
+                                negated=negated)
+            else: #Atomic proposition: 
+                prop = ctx.children[3].children[0].symbol.text
+                if prop in ('true', 'false'):
+                    prop = ctx.prop.text.lower() == 'true'
+                negated = ctx.negated is not None
+                ret = TWTLFormula(op, duration=duration, predicate=None,
+                                relation = None,
+                                variable = None,
+                                threshold = None,
+                                proposition = prop,
+                                negated=negated)
         elif op == Operation.WITHIN:
             print((ctx.op.text, op))
             low = int(ctx.low.text)
