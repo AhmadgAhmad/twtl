@@ -37,10 +37,10 @@ from twtlListener import twtlListener
 
 class Operation(object):
     '''TWTL operations'''
-    NOP, NOT, OR, AND, HOLD, CONCAT, WITHIN = range(7)
-    opnames = [None, '!', '||', '&&', 'H', '.', 'W']
+    NOP, NOT, OR, AND, HOLD, CONCAT, WITHIN, LT, LE, GT, GE, EQ, NQ = range(13)
+    opnames = [None, '!', '||', '&&', 'H', '.', 'W', '<', '<=', '>', '>=', '=', '!=']
     opcodes = {'!': NOT, '&&': AND, '||' : OR, 'H': HOLD, '.': CONCAT,
-               'W': WITHIN}
+               'W': WITHIN, '<': LT, '<=': LE, '>' : GT, '>=': GE, '=': EQ, '!=': NQ}
 
     @classmethod
     def getCode(cls, text):
