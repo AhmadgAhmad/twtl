@@ -29,13 +29,16 @@ import logging
 import itertools as it
 
 from antlr4 import InputStream, CommonTokenStream
+from torch import threshold
 
 from twtlLexer import twtlLexer
 from twtlParser import twtlParser
 from twtl_ast import TWTLAbstractSyntaxTreeExtractor
 from twtl2dfa import twtl2dfa
-from dfa import setDFAType, DFAType, Op, setOptimizationFlag
+from dfa import setDFAType, DFAType, setOptimizationFlag
+from twtl_ast import Operation as Op
 from util import _debug_pprint_tree
+import numpy as np
 
 
 def monitor(formula=None, kind=None, dfa=None, cutoff=None):
@@ -117,13 +120,13 @@ def _update_tree(tree, state, prev_state, symbol, constraint=None):
             tree.tau += 1
         if not tree.wwf:
             _update_tree(tree.left, state, prev_state, symbol, constraint)
-    elif tree.operation == Op.cat:
+    elif tree.operation == Op.CONCAT:
         _update_tree(tree.left, state, prev_state, symbol)
         _update_tree(tree.right, state, prev_state, symbol, constraint)
-    elif tree.operation == Op.intersection:
+    elif tree.operation == Op.AND:
         _update_tree(tree.left, state, prev_state, symbol, constraint)
         _update_tree(tree.right, state, prev_state, symbol, constraint)
-    elif tree.operation == Op.union:
+    elif tree.operation == Op.OR:
         if constraint is None:
             c_left = {s: ch.both | ch.left for s, ch in tree.choices.iteritems()}
             c_right = {s: ch.both | ch.right for s, ch in tree.choices.iteritems()}
@@ -156,10 +159,10 @@ def _eval_relaxation(tree):
         else:
             tree.tau -= tree.high
             return max(tree.tau, t_opt_left), tau_left + [(tree.tau, (tree.low, tree.high))]
-    if tree.operation in (Op.cat, Op.intersection, Op.union):
+    if tree.operation in (Op.CONCAT, Op.AND, Op.OR):
         t_opt_left, tau_left = _eval_relaxation(tree.left)
         t_opt_right, tau_right = _eval_relaxation(tree.right)
-        if tree.operation in (Op.cat, Op.intersection):
+        if tree.operation in (Op.CONCAT, Op.AND):
             if t_opt_left > float('-Inf') and t_opt_left > float('-Inf'):
                 return max(t_opt_left, t_opt_right), tau_left + tau_right
             else:
@@ -296,7 +299,7 @@ def translate(formula, kind='both', norm=False, optimize=True):
 
     return tuple(result)
 
-def robustness(ast,word,t1=0,t2=None,shift = 0):
+def robustness(formula,traj,time_traj,t1=None,t2=None):#t1=0,t2=None,shift = 0):
     '''
     - Ahmad Ahmad 
 
@@ -311,56 +314,73 @@ def robustness(ast,word,t1=0,t2=None,shift = 0):
     '''
     # assert t_1, t_2 are integers and 0=<t_1<=t_2<len(word)
     
-    
+    # TODO: Create a trace class 
     #------------------------------------------
-    if ast.operation == Op.accept: #Predicated proposition 
+    
+    
+    if formula.op == Op.NOP: #Predicated proposition 
         pass
-    elif ast.operation == Op.hold:
-        # times = [t for t in time_traj if t1 <= t <= d+t1]
-        # rho = [robustness(ast = ast.child traj,shift= t) for t in times] # These are predicated propositions 
-        # if t2 - t1 < d:
-        #     rho = float('-Inf')
-        # else: 
-        #     rho = min(rho)
-        pass
-    elif ast.operation == Op.within:
-        # times = [t for t in time_traj if t1+a <= t <= t2]
-        # rho = [robustness(ast = ast.child traj,shift= t) for t in times] # These are predicated propositions 
-        # if t2 - t1 < b:
-        #     rho = float('-Inf')
-        # else: 
-        #     rho = max(rho)
-        pass
-    elif ast.operation in (Op.union,Op.intersection):
-        rho = [robustness(ast= f,word=word) for f in [ast.left,ast.right]]
-        if ast.operation == Op.union: 
+    elif formula.op == Op.HOLD:
+        d = formula.duration
+        if len(time_traj)==0:
+            return float('-Inf')
+        if t1 is None and t2 is None:
+            t1,t2 = time_traj[0],time_traj[-1]
+        times = [t for t in time_traj if t1 <= t <= d+t1]
+        if t2 - t1 < d:
+            rho = float('-Inf')
+        else: 
+            if formula.relation in ('>=','>'):#(Op.GE, Op.GT):
+                rs =  [value - formula.threshold for value in traj[times[0]-1:times[-1]]]
+            elif formula.relation in ('<=','<'):#(Op.LE, Op.LT):
+                rs =  [formula.threshold - value for value in traj[times[0]-1:times[-1]]]
+            elif formula.relation == Op.EQ:
+                rs = [-np.abs(value - formula.threshold) for value in traj[times[0]-1:times[-1]]]
+            elif formula.relation == Op.NQ:
+                rs = [np.abs(value - formula.threshold) for value in traj[times[0]-1:times[-1]]]
+            rho = min(rs)
+            if formula.negated:
+                rho = -rho
+        return rho
+    elif formula.op == Op.WITHIN:
+        if len(time_traj)==0:
+            return float('-inf')
+        if t1 is None and t2 is None:
+            t1,t2 = time_traj[0],time_traj[-1]
+        if t2 - t1 < formula.high:
+            rho = float('-Inf')
+        else:
+            times = [t for t in time_traj if t1+formula.low <= t <= t2]
+            rho = [robustness(formula = formula.child, traj = traj, time_traj=times,t1 = t, t2 = times[0]+formula.high-1) for t in times] # These are predicated propositions 
+            rho = max(rho)
+        return rho
+    elif formula.op in (Op.OR,Op.AND):
+        times = [t]
+        rho = [robustness(formula= f,traj=traj,time_traj=time_traj) for f in [formula.left,formula.right]]
+        if formula.op == Op.OR: 
             rho = max(rho)
         else: 
             rho = min(rho)
-    elif ast.operation == Op.neg: 
-        rho = -robustness(ast = ast,word=word)
-    elif ast.operation == Op.cat:
-        # times = [t for t in traj[1] if self.low <= t <= self.high]
-        # times_prime = [t for t in traj[1] if self.low <= t <= self.high]
-        # rho11 = [self.subformula.robustness(traj, t) for t in times]
-        # rho12 = []
-        # rho2 = []
-        # rho = min(max(min(,)),max()) 
-        pass
+    elif formula.op == Op.NOT: 
+        rho = -robustness(formula= formula,traj=traj,time_traj=time_traj)
+    elif formula.op == Op.CONCAT:
+        times = time_traj
+        rhomx = float('-inf')
+        for t in times[:]:
+            times_l = [tt for tt in times if times[0] <= tt <=t]
+            times_r = [tt for tt in times if t+1<=tt<=times[-1]]
+            rho_l =  robustness(formula= formula.left,traj=traj,time_traj=times_l)
+            rho_r =  robustness(formula= formula.right,traj=traj,time_traj=times_r)
+            rho = min(rho_l,rho_r)
+            if rho>rhomx:
+                rhomx = rho
+        return rhomx 
     else: 
-        raise('You are not accounting for op:%d',ast.operation)
-
+        raise('You are not accounting for op:%d',formula.op)
 
     #------------------------------------------
     # ast = twtl_dfa.tree 
-    ast.operation == Op.cat # and so on 
-    #temporal operators are extracted from here: 
-    Op.cat
-    Op.hold
 
-    # Construct the abstract syntax tree in order to have easier to compute the TWTL robustness   
-    # - The function translate traverse the AST
-    
     
     a = 1
     pass
@@ -369,17 +389,21 @@ def robustness(ast,word,t1=0,t2=None,shift = 0):
 if __name__ == '__main__':
 #     print translate('[H^3 !A]^[0, 8] * [H^2 B & [H^4 C]^[3, 9]]^[2, 19]',
 #                     kind=DFAType.Normal, norm=True)
-    twtl_formula = 'H^3 x1<2 * [H^2 A]^[0, 4] | [H^2 B]^[2, 5]'
+    twtl_formula = '(H^2 x>=6) . (H^2 x<=4) . [H^2 x>=5]^[1,12]'
+    # twtl_formula = '(H^2 x>=6) . (H^2 x<=4) . (H^5 x>=5)'
     lexer = twtlLexer(InputStream(twtl_formula))
     tokens = CommonTokenStream(lexer=lexer)
     parser = twtlParser(tokens)
     t = parser.formula()
     # res = translate(twtl_formula,
     #                 kind=DFAType.Infinity, norm=True)
-    traj = [1,2,3,4,5,6]
+    traj = [7,7,7,2,2,2,3,4,5,6,6,6,6]
+    traj = [7,7,7,5,3,3,3,4,6,6,6,6,6,6,6,10,10,10,10,10,10,10] # rho = 1, -inf
+    # traj = [4,4,4,5,8,8,8,4,6,6,6,6,6,6,6] # rho = -4
+    time_traj = [1,2,3,4,5,6,7,8,9,10,11,12,13,14]
     
-    ast = TWTLAbstractSyntaxTreeExtractor().visit(t)
-    rho = robustness(ast=ast,word=traj)
-    
+    formula = TWTLAbstractSyntaxTreeExtractor().visit(t)
+    rho = robustness(formula=formula,traj=traj,time_traj=time_traj)
+    a = 1
     # print(res)
     # print(res[1].g.nodes())
