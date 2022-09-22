@@ -350,8 +350,8 @@ def robustness(formula,traj,time_traj,t1=None,t2=None):#t1=0,t2=None,shift = 0):
         if t2 - t1 < formula.high:
             rho = float('-Inf')
         else:
-            times = [t for t in time_traj if t1+formula.low <= t <= t2]
-            rho = [robustness(formula = formula.child, traj = traj, time_traj=times,t1 = t, t2 = times[0]+formula.high-1) for t in times] # These are predicated propositions 
+            times = [t for t in time_traj if t1+formula.low <= t <= t1+formula.high]
+            rho = [robustness(formula = formula.child, traj = traj, time_traj=times,t1 = t, t2 = time_traj[0]+formula.high) for t in times] # These are predicated propositions 
             rho = max(rho)
         return rho
     elif formula.op in (Op.OR,Op.AND):
@@ -389,8 +389,9 @@ def robustness(formula,traj,time_traj,t1=None,t2=None):#t1=0,t2=None,shift = 0):
 if __name__ == '__main__':
 #     print translate('[H^3 !A]^[0, 8] * [H^2 B & [H^4 C]^[3, 9]]^[2, 19]',
 #                     kind=DFAType.Normal, norm=True)
-    twtl_formula = '(H^2 x>=6) . (H^2 x<=4) . [H^2 x>=5]^[1,12]'
+    twtl_formula = '(H^2 x>=6) . (H^2 x<=4) . [H^2 x>=5]^[10,12]'
     # twtl_formula = '(H^2 x>=6) . (H^2 x<=4) . (H^5 x>=5)'
+    # twtl_formula = '[H^2 x>=5]^[3,12]'
     lexer = twtlLexer(InputStream(twtl_formula))
     tokens = CommonTokenStream(lexer=lexer)
     parser = twtlParser(tokens)
@@ -398,7 +399,7 @@ if __name__ == '__main__':
     # res = translate(twtl_formula,
     #                 kind=DFAType.Infinity, norm=True)
     traj = [7,7,7,2,2,2,3,4,5,6,6,6,6]
-    traj = [7,7,7,5,3,3,3,4,6,6,6,6,6,6,6,10,10,10,10,10,10,10] # rho = 1, -inf
+    traj = [7,7,7,7,7,7,7,7,6,6,6,6,6,6,6,10,10,10,10,10,10,10] # rho = 1, -inf
     # traj = [4,4,4,5,8,8,8,4,6,6,6,6,6,6,6] # rho = -4
     time_traj = [1,2,3,4,5,6,7,8,9,10,11,12,13,14]
     
