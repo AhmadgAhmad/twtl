@@ -1,0 +1,15 @@
+- Program the AST 
+- Program the computation of the robustness 
+
+
+
+As for 9.22.22: 
+- Debug the computation of robustness: 
+    - Formulate a feasible example to test upon  
+    - AND and OR operators 
+- TWTL-RRT* 
+    - Modify the STL-RRT* code and test it (No automaton whatsoever)
+    - Think about how the language guided work and use that alongside with maximizing the robustness
+    - How PFSA could help? How the predicated guards would work in your case? 
+- Create the Syntax/Semantics for wTWTL
+    - Update the grammar file 
