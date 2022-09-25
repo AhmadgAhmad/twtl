@@ -1,0 +1,10 @@
+When Arriving to a hold operator: 
+- It's best to create a class in which the threshold, the variable 
+of the predicates are part of the attributes. 
+- We need to extract the values once and for all when producing 
+the AST. 
+
+pred = ctx.children[3]
+pred_variable = lin_pred.children[0].children[0].symbol.text
+pred_relation = lin_pred.children[1].symbol.text
+pred_threshold = float(lin_pred.children[2].children[0].symbol.text)
