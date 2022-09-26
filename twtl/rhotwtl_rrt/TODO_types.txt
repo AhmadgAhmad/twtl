@@ -1,0 +1,20 @@
+TODO [code_opt] :
+- This part of the code could be optimized -- vectorized/parallel computation 
+
+
+TODO [traj_smplng] : 
+- This could be modified for the case when we consider IS over (feasible) trajectories space. 
+
+TODO [smplng]
+- This part for improving on sampling/exploration/ergodic sampling/ etc... 
+TODO [ahmad_q] :
+- Question to Cristi about the code. 
+
+TODO [q_theory] : 
+- Theoretical question to Belta, Tron, Cristi 
+
+TODO [case_dyn] : 
+Where to introduce new dynamics for a case study 
+
+TODO [wrat] : 
+To catch up where I was 
