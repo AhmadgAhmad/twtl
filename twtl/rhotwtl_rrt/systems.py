@@ -11,7 +11,7 @@ from scipy.integrate import odeint
 from scipy.optimize import *
 import math
 import logging
-from mission import Mission
+from rhotwtl_rrt.mission import Mission
 import matplotlib.pyplot as plt
 
 

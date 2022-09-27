@@ -4,7 +4,7 @@ Created on Oct 11, 2016
 @author: cristi
 '''
 
-from stl import SignalSpace, STL
+from rhotwtl_rrt.stl import SignalSpace, STL
 import sys
 
 def get_specification_ast(name):
