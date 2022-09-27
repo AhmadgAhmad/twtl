@@ -25,6 +25,7 @@ license_text='''
 
 '''
 
+from inspect import trace
 import logging
 import itertools as it
 
@@ -357,8 +358,8 @@ def robustness(formula,traj,time_traj,t1=None,t2=None,trace_test = None):#t1=0,t
             rho = max(rho)
         return rho
     elif formula.op in (Op.OR,Op.AND):
-        times = [t]
-        rho = [robustness(formula= f,traj=traj,time_traj=time_traj) for f in [formula.left,formula.right]]
+        # times = [t]
+        rho = [robustness(formula= f,traj=traj,time_traj=time_traj, trace_test=trace_test) for f in [formula.left,formula.right]]
         if formula.op == Op.OR: 
             rho = max(rho)
         else: 
@@ -501,7 +502,7 @@ if __name__ == '__main__':
 #     print translate('[H^3 !A]^[0, 8] * [H^2 B & [H^4 C]^[3, 9]]^[2, 19]',
 #                     kind=DFAType.Normal, norm=True)
     twtl_formula = '(H^2 x>=6) . (H^2 x<=4) . [H^2 x>=5]^[10,12]'
-    twtl_formula = 'H^2 x>=6'
+    twtl_formula = 'H^10 y>=16 && H^5 x>=10'
     # twtl_formula = '(H^2 x>=6) . (H^2 x<=4) . (H^5 x>=5)'
     # twtl_formula = '[H^2 x>=5]^[3,12]'
     lexer = twtlLexer(InputStream(twtl_formula))
