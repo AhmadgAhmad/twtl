@@ -39,6 +39,7 @@ from dfa import setDFAType, DFAType, setOptimizationFlag
 from twtl_ast import Operation as Op
 from util import _debug_pprint_tree
 import numpy as np
+from scipy.interpolate import interp1d
 
 
 def monitor(formula=None, kind=None, dfa=None, cutoff=None):
@@ -299,7 +300,7 @@ def translate(formula, kind='both', norm=False, optimize=True):
 
     return tuple(result)
 
-def robustness(formula,traj,time_traj,t1=None,t2=None):#t1=0,t2=None,shift = 0):
+def robustness(formula,traj,time_traj,t1=None,t2=None,trace_test = None):#t1=0,t2=None,shift = 0):
     '''
     - Ahmad Ahmad 
 
@@ -316,8 +317,8 @@ def robustness(formula,traj,time_traj,t1=None,t2=None):#t1=0,t2=None,shift = 0):
     
     # TODO: Create a trace class 
     #------------------------------------------
-    
-    
+    # n_traces = trace.number_signals()
+    # traj = 111111
     if formula.op == Op.NOP: #Predicated proposition 
         pass
     elif formula.op == Op.HOLD:
@@ -330,6 +331,7 @@ def robustness(formula,traj,time_traj,t1=None,t2=None):#t1=0,t2=None,shift = 0):
         if t2 - t1 < d:
             rho = float('-Inf')
         else: 
+            trace_test.value(formula.variable,times[0])
             if formula.relation in ('>=','>'):#(Op.GE, Op.GT):
                 rs =  [value - formula.threshold for value in traj[times[0]-1:times[-1]]]
             elif formula.relation in ('<=','<'):#(Op.LE, Op.LT):
@@ -379,6 +381,9 @@ def robustness(formula,traj,time_traj,t1=None,t2=None):#t1=0,t2=None,shift = 0):
         raise('You are not accounting for op:%d',formula.op)
 
     
+    
+
+
     def rois(formula,traj,shift):
         '''FIXME: call online monitor
         assumes traj is sorted w.r.t. times
@@ -434,11 +439,69 @@ def robustness(formula,traj,time_traj,t1=None,t2=None):#t1=0,t2=None,shift = 0):
     a = 1
     pass
 
+# The following two classes are to make traces cleaner: 
+class Trace(object):
+    '''Representation of a system trace.'''
+
+    def __init__(self, variables, timePoints, data, kind='nearest'):
+        '''Constructor'''
+        # self.timePoints = list(timePoints)
+        # self.data = np.array(data)
+        # for variable, var_data in zip(variables, data):
+        #     print(variable, var_data, timePoints)
+        self.data = {variable : interp1d(timePoints, var_data, kind=kind)
+                            for variable, var_data in zip(variables, data)}
+
+    def value(self, variable, t):
+        '''Returns value of the given signal component at time t.'''
+        return self.data[variable](t)
+
+    def values(self, variable, timepoints):
+        '''Returns value of the given signal component at desired timepoint.'''
+        return self.data[variable](np.asarray(timepoints))
+
+    def number_signals(self):
+        return 1
+
+    def __str__(self):
+        raise NotImplementedError
+
+
+class TraceBatch(object):
+    '''Representation of a system trace.'''
+
+    def __init__(self, variables, timePoints, data, kind='nearest'):
+        '''Constructor
+        variables (iterable of strings)
+        timepoints (iterable of common time points)
+        data (iterable of multi-dimensional signals)
+        kind (type of interpolation)
+        '''
+        self.no_signals = len(data)
+        self.data = dict()
+        for k, variable in enumerate(variables):
+            var_data = np.array([d[k] for d in data])
+            self.data[variable] = interp1d(timePoints, var_data, kind=kind)
+
+    def value(self, variable, t):
+        '''Returns value of the given signal component at time t.'''
+        return self.data[variable](t)
+
+    def values(self, variable, timepoints):
+        '''Returns value of the given signal component at desired timepoint.'''
+        return self.data[variable](np.asarray(timepoints))
+
+    def number_signals(self):
+        return self.no_signals
+
+    def __str__(self):
+        raise NotImplementedError
 
 if __name__ == '__main__':
 #     print translate('[H^3 !A]^[0, 8] * [H^2 B & [H^4 C]^[3, 9]]^[2, 19]',
 #                     kind=DFAType.Normal, norm=True)
     twtl_formula = '(H^2 x>=6) . (H^2 x<=4) . [H^2 x>=5]^[10,12]'
+    twtl_formula = 'H^2 x>=6'
     # twtl_formula = '(H^2 x>=6) . (H^2 x<=4) . (H^5 x>=5)'
     # twtl_formula = '[H^2 x>=5]^[3,12]'
     lexer = twtlLexer(InputStream(twtl_formula))
@@ -448,12 +511,18 @@ if __name__ == '__main__':
     # res = translate(twtl_formula,
     #                 kind=DFAType.Infinity, norm=True)
     traj = [7,7,7,2,2,2,3,4,5,6,6,6,6]
-    traj = [7,7,7,7,7,7,7,7,6,6,6,6,6,6,6,10,10,10,10,10,10,10] # rho = 1, -inf
+    # traj = [7,7,7,7,7,7,7,7,6,6,6,6,6,6,6,10,10,10,10,10,10,10] # rho = 1, -inf
     # traj = [4,4,4,5,8,8,8,4,6,6,6,6,6,6,6] # rho = -4
     time_traj = [1,2,3,4,5,6,7,8,9,10,11,12,13,14]
     
+
+    varnames = ['x', 'y']
+    data = [[7,7,7,2,2,2,3,4,5,6,6,6,6], [17,17,17,12,12,12,13,14,15,16,16,16,16],[27,27,27,22,22,22,23,24,25,26,26,26,26]]
+    timepoints = [1,2,3,4,5,6,7,8,9,10,11,12,13]
+    s = Trace(varnames, timepoints, data)
+
     formula = TWTLAbstractSyntaxTreeExtractor().visit(t)
-    rho = robustness(formula=formula,traj=traj,time_traj=time_traj)
+    rho = robustness(formula=formula,traj= traj,time_traj=time_traj,trace_test=s)
     a = 1
     # print(res)
     # print(res[1].g.nodes())

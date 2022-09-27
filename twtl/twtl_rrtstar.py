@@ -25,7 +25,7 @@ from collections import deque
 import time
 import timeit
 
-import numpy as np
+import numpy as np, sys
 from numpy.random import uniform, exponential
 from sklearn.neighbors import KDTree
 from sklearn.neighbors import BallTree
@@ -427,6 +427,7 @@ class Planner(object):
         # FIXME: assumes that the spec does not have a disjunction as root'
         trajectory = [[initial_state], [0.0]]
         init_rosi = self.specification.rosi(trajectory)   # How to build the completions set. 
+        init_rosi = self.twtl_ast.rosi(trajectory)
         self.ts.add_node(initial_state,
             attr_dict = {self.specification: {
 #                              'costFromParent' : 0,
