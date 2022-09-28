@@ -6,3 +6,7 @@ twtl/__pycache__/twtlListener.cpython-310.pyc
 twtl/__pycache__/twtlParser.cpython-310.pyc
 twtl/__pycache__/twtlVisitor.cpython-310.pyc
 twtl/__pycache__/util.cpython-310.pyc
+twtl/twtlLexer.py
+twtl/twtlListener.py
+twtl/twtlParser.py
+twtl/__pycache__/twtlLexer.cpython-310.pyc
