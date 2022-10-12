@@ -520,10 +520,7 @@ class Planner(object):
         # TODO [PY3]>>>
         return t_rand, tuple([uniform(l, h) for l, h in it.zip_longest(low, high)])
         # TODO [PY3]<<<
-
-
-    
-    def sample(self):
+    def sample_dummy(self):
         #TODO [smplng] : Sample from the importance sampling distribution 
         '''Generates a random time and state.'''
         t_max = min(self.ts.maxtime, self.specification.bound)
@@ -805,6 +802,32 @@ class Planner(object):
             x, phi = v
             v = self.ts.nodes[x][phi]['parent']
         return traj
+
+    # >>>>>>>>>>>>>>>>TWTL-based primitives functions <<<<<<<<<<<<<<<<<
+    # >>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    def sample_x_s(self):
+        pass
+
+    def nearest(self):
+        pass
+
+    def near(self):
+        pass
+
+    def chooseParent(self): 
+        pass
+
+    # Quantitative semantics of TWTL  
+    def computeCost(self):
+        pass
+    def robustness(self):
+        pass
+    def rtimeMntrng(self):
+        pass
+
+
+    # >>>>>>>>>>>>>>>>End of TWTL-based primitives functions <<<<<<<<<<
+    # >>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
 def debug_show_ts(planner, system_type):
