@@ -1,3 +1,4 @@
-TODO [code_opt]: Code optimization 
-TODO [build_code]: 
+TODO [code opt]: Code optimization 
+TODO [build code]: 
 TODO [sanity check]: 
+TODO [search chlng]: A challenge that involve retrieving a vertex from the value in X_free, and the like. 
