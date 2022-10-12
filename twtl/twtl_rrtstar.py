@@ -114,11 +114,23 @@ class PAstate(object):
     '''
     def __init__(self):
         self.TX_xs = None # The cooerdinates of the TS states that correspond to the automaton state. 
+        self.TX_ids =None # Keep carying over the id of the vertices of intrest of TS (this will be usful when we want to retrive the actual vertices because we might need to use stored information at each node)
         self.SP = None    # Set of Paroduct automaton states
         self.TS = None
         self.Atmtn = None # the automaton that corresponds to the specifications automaton 
     def return_TS_xs(slef):
         pass
+
+class TS(object):
+    def __init__(self):
+        self.V = None           # the set of vertices 
+        self.E = None           # the set of edges, aka transitons 
+        self.dynamics = None    # the actual underlying dynamics that TS is an abstraction for. 
+    
+    def steer(self):
+        pass 
+    def update(self):
+        pass 
 
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -855,25 +867,45 @@ class Planner(object):
 
     def nearest(self,x_smpl,s_smpl):
         """
-        Given the expanded tree, find the nearest vertex to xy_sample. Uses KD-trees as a NN method.
-        :param xy_sample: (x,y) in the 2D Euclidean space.
-        :return: The nearest vertex from the tree 
+        :input x_smpl: an (x,y) sample in X_{free}
+        :input  s_smpl: a sampled automaton state that has a corresponding PA states, 
+                (i.e. there are x's in V in that spesifications layer (an automaton state))
         """
-         
-        # The position of each node in the mission-space:
-        TS = self.PA.TS #TODO (code optimizaton--mem issue) check if we could not extract it
-        DFA = self.PA.Atmtn
-        xyCoorVertices = s_smpl.xVs # TS states of PA states with the same twtlAutomaton state  TODO [build_code] create an automaton state class 
-        # The tree of the NNs (we cannot build it outside)
-        tempTree = KDTree(xyCoorVertices, leaf_size=2) # TODO [code_opt]
+        # Extract the TS states of the automaton state: 
+        xyVrtcs = s_smpl.TX_xs # list
+        tempTree = KDTree(xyVrtcs, leaf_size=2)
 
-        # The index of the NN vertex (it is different than indexID of the vertex)
         nn_idx = int(tempTree.query(x_smpl.reshape([1, 2]), k=1, return_distance=False))
-        x_exp = TS.V[nn_idx]
-        return x_exp
+        x_exp = xyVrtcs[nn_idx]
+        return x_exp # What I'm interested hear is just about the value in X_free, we'll keep track of the TS when we extended 
+        
 
-    def near(self):
-        pass
+    def near(self, b_radi, x_new = None, s_nnEty = None):
+        """
+        Find all the vertices within a  ball with radius=b_raduis of the Vertex. Uses KDball-trees as well.
+        :param b_raduis: a ball in which we search for the neighboring vertices
+        :input x_new:   a state in X_free (NOT a vertex yet, we got it after steering x_exp)
+        :input s_nnEty: a twtlAutomaton state that has a corresponding PA state/s
+        :return: A list of the vertexes with the specified ball.
+        """
+        #TODO [search chlng]: for near we need to retrive the actual vertices, because at each vertix I'll have the computation of the runtime monitring there. 
+        # The tree of the NNs within the ball
+        tempTree = BallTree(s_nnEty.TX_xs) # Here we are concerned about the vertices around at the same specifications layer (the automaton state
+        # The index of the NN vertex (it is different than indexID of the vertex) TODO [sanity check] make sure that you return the correct NN
+        nn_currIndex, _ = tempTree.query_radius(x_new.reshape([1, 2]), r=b_radi, return_distance=True,sort_results=True)  # TODO (debug) prevent the vertex to be neighbor to itself
+        nn_currIndex = nn_currIndex[0].astype(int)
+        # Return the indexID of the Nearest Vertex to xy_sample:
+        nn_currIndex = nn_currIndex[1:]  # Exclude the node of being its own neighbor
+        indsID_List = s_nnEty.TX_ids
+        nn_TS_ids = indsID_List[nn_currIndex] # These are indices in the original TS  
+        nn_Vs = [v for id,v in zip(nn_TS_ids,self.TS.V) if id == self.TS.V.id] # TODO [code opt] try to avoid searching in here THIS IS WRONG
+        return nn_Vs
+
+    def find_vmax_rhp(self,v_new,V_near):
+        '''
+        This is basically choosing the best parent
+        '''
+        pass 
 
     def chooseParent(self): 
         pass
