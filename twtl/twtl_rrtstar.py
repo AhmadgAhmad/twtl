@@ -26,7 +26,7 @@ import time
 import timeit
 
 import numpy as np, sys
-from numpy.random import uniform, exponential
+from numpy.random import uniform, exponential, randint
 from sklearn.neighbors import KDTree
 from sklearn.neighbors import BallTree
 from sklearn.neighbors import KernelDensity
@@ -77,6 +77,51 @@ def choose_random(x1, x2, I1, I2, rho_max):
             return x1, I1, x2, I2
         else:
             return x2, I2, x1, I1
+
+
+# >>>>>>>>>>>> TWTL-RRT classes <<<<<<<<<<<<<<<<<<<<<<<<
+class PA(object):
+    def __init__(self):
+        self.SP = None
+        self.VTS = None
+        self.Satmtn = None
+        # TS and the specs automaton (might not be needed): 
+        self.Atmtn = None # For TWTL this is a DFA
+        self.TS = None    # This will be the tree that we build incrementally 
+    
+    def smpl_nonEty_s(self): 
+        '''
+        sample a spec automaton state, s, such that it has a correspondance PA states, i.e., there are TS states in that region
+        '''
+        pass
+    def smpl_s(self):
+        '''
+        sample a specs' automaton state
+        '''
+        return self.Satmtn[randint(low=0,high=len(self.Satmtn))]
+
+    def smpl_TS_x(self):
+        pass
+    
+    def update_PA(self):
+        pass
+
+    
+
+class PAstate(object):
+    '''
+    Class of product automaton states 
+    '''
+    def __init__(self):
+        self.TX_xs = None # The cooerdinates of the TS states that correspond to the automaton state. 
+        self.SP = None    # Set of Paroduct automaton states
+        self.TS = None
+        self.Atmtn = None # the automaton that corresponds to the specifications automaton 
+    def return_TS_xs(slef):
+        pass
+
+# >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
 
 class Tree(object):
     '''TODO:'''
@@ -808,8 +853,24 @@ class Planner(object):
     def sample_x_s(self):
         pass
 
-    def nearest(self):
-        pass
+    def nearest(self,x_smpl,s_smpl):
+        """
+        Given the expanded tree, find the nearest vertex to xy_sample. Uses KD-trees as a NN method.
+        :param xy_sample: (x,y) in the 2D Euclidean space.
+        :return: The nearest vertex from the tree 
+        """
+         
+        # The position of each node in the mission-space:
+        TS = self.PA.TS #TODO (code optimizaton--mem issue) check if we could not extract it
+        DFA = self.PA.Atmtn
+        xyCoorVertices = s_smpl.xVs # TS states of PA states with the same twtlAutomaton state  TODO [build_code] create an automaton state class 
+        # The tree of the NNs (we cannot build it outside)
+        tempTree = KDTree(xyCoorVertices, leaf_size=2) # TODO [code_opt]
+
+        # The index of the NN vertex (it is different than indexID of the vertex)
+        nn_idx = int(tempTree.query(x_smpl.reshape([1, 2]), k=1, return_distance=False))
+        x_exp = TS.V[nn_idx]
+        return x_exp
 
     def near(self):
         pass
