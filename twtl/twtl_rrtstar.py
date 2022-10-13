@@ -901,15 +901,63 @@ class Planner(object):
         nn_Vs = [v for id,v in zip(nn_TS_ids,self.TS.V) if id == self.TS.V.id] # TODO [code opt] try to avoid searching in here THIS IS WRONG
         return nn_Vs
 
-    def find_vmax_rhp(self,v_new,V_near):
+    def V_next(self,s,v_new):
+        '''
+        This function returns the a set of states in from V, the set of TS states, 
+        : s : the current automaton state
+        : v_new : the TS state from which we want to find the next automaton state, s_next, that if s_next.TX_xs 
+        is not empty, we'll try to rewire those states based on the ribustness  
+        :
+        '''
+
+        # Steps: 
+        
+        # 1) Find s_next following the tranisiton: \delta(s,l(v_new)) 
+
+        # 2) Given s_next, v_new, and d_steer find the near set: 
+        return self.near(b_radi=self.d_steer,x_new=v_new.s,s_nnEty=s)
+
+
+    def find_vmax_rhp(self,x_max,v_new,V_near,s_rand):
         '''
         This is basically choosing the best parent
         '''
-        pass 
+        # TODO [build code] Make sure to distinguish between x and v  
+        for v in V_near: 
+            x_prime, traj = self.steer( x_start = v, x_g = v_new, exct_flg = True)
+            if abs(x_prime-v_new)< self.eps and self.collFree(traj) and self.computeCost(v) >= self.computeCost(x_max):
+                p_new = 1 
+                x_max = v
+            # TODO [code build] Update the PA states as well as the transitions. $(subsequently, update the transion system as well s_rand.TX_xs 
+            # (the set of TS states that corresponds to PA states that their s state variable is s_rand))$
+    def rewire(self,V_next, x_new):
+        '''
+        Check if the rewiring the TS vertices in the next specifications level 
+        (PA states with s = next automaton state), would increase the robust satisfaction 
+        $$$ >>>>>>
+        Let's for now use the Eucledean distance as our the cost fucntion that we want to optimize. 
+        This will help in debugging the RRT with exploring the product automaton statespace 
+        <<<<<<< $$$
 
-    def chooseParent(self): 
+        '''
+        for v in V_next: 
+            
+            pass
         pass
-
+    
+    def steer(self,t_i,x_start = None, x_g = None, d_steer = None, exct_flg = False):
+        '''
+        assume dummy connections are achievable between the states (i.e. all the states are reachable from each other)
+        TODO [code build] consider the following dynamics: single and double integrators, bicycle and unicycle models 
+        (maybe enclode extended models in which the acceleration is the input control)
+        : param d_steer:    If given a value and exct_flg is False, then we aim to steer the system from x_start toward x_g to a state that is d_steer distance away from x_start
+        : param exct_flg:   If True, then we aim to steer the system from x_start to x_g (note: x_g might not be reachable from x_start)
+        : input x_start: an initial system state
+        : input x_g: a state that we want to steer to or to steer towards. 
+        > return traj, t_traj
+        '''
+        
+        pass
     # Quantitative semantics of TWTL  
     def computeCost(self):
         pass
