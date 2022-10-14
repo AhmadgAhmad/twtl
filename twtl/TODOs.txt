@@ -13,3 +13,11 @@ As for 9.22.22:
     - How PFSA could help? How the predicated guards would work in your case? 
 - Create the Syntax/Semantics for wTWTL
     - Update the grammar file 
+
+As for 10.14.22: 
+>>> the main planning loop: 
+- Initialize 
+- Translate the TWTL specs to an Automaton 
+    - What is the class of the automaton states? If networkX, can In add more attributes? 
+- Instantiate the product automaton 
+- Sample from the Sp taking into account the frequency of the s's

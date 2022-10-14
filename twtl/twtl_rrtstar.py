@@ -364,10 +364,28 @@ class Planner(object):
     ##############
     ##############
 
+    #$#$#$#$#$#$#$#$#$# the main planning loop: 
     def solve(self):
         '''
         TODO: - Inspect every newlly added edge to the tree, 
         '''
+        Aphi = self.DFA
+        
+        #------
+        self.initialize()  
+        # 1) the workspace
+        # 2) the TS
+        # 3) the TWTL automaton 
+        # 4) the product automaton 
+        # 5) 
+        #-----
+        
+        
+        
+        #=================================================================
+        #=================================================================
+        #=================================================================
+
         self.initialize()
 
         runtimes = []
@@ -477,6 +495,12 @@ class Planner(object):
         return False
 
     def initialize(self):
+        
+        
+        initial_state = self.ts.init #This will esentially be the RRT* tree
+        #=============================================
+        #=============================================
+        #=============================================
         '''Initializes the planner.'''
         initial_state = self.ts.init
 
@@ -956,7 +980,10 @@ class Planner(object):
         : input x_g: a state that we want to steer to or to steer towards. 
         > return traj, t_traj
         '''
-        
+        if exct_flg is True and x_g is not None:
+            traj = np.linspace(start=x_start,stop=x_g,num=numSteps)
+        elif not exct_flg:
+            x_g = 1#compute a state in the direction of x_g and d_steer distaned 
         pass
     # Quantitative semantics of TWTL  
     def computeCost(self):
