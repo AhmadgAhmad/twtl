@@ -36,6 +36,7 @@ from matplotlib import cm
 import plotly.graph_objects as go
 # import twtl.twtl  as twtl
 from antlr4 import InputStream, CommonTokenStream
+from twtl.twtl import translate
 from twtlLexer import twtlLexer
 from twtlParser import twtlParser
 
@@ -200,6 +201,9 @@ class Planner(object):
 
         # Inspection for the twtl specs: 
         self.twtl_ast = None
+        self.twtlDFA = None
+        self.PA = None          # the product automaton
+        self.TS
 
     ##############
     ##############
@@ -1179,7 +1183,8 @@ def main():
     current_k = 0
     planner = Planner(system, specification, mission.planning,mission)
     planner.twtl_ast  = t
-
+    twtlDFA = translate(formula=t ,norm=True)
+    Planner.twtlDFA = twtlDFA
     logging.info('Start solving:')
 
     found = planner.solve()
