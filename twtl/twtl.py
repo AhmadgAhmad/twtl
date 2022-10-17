@@ -229,7 +229,7 @@ def norm(formula):
     # compute TWTL bound
     return ast.bounds()
 
-def translate(formula, kind='both', norm=False, optimize=True):
+def translate(ast, kind='both', norm=False, optimize=True):
     '''Converts a TWTL formula into an FSA. It can returns both a normal FSA or
     the automaton corresponding to the relaxed infinity version of the
     specification.
@@ -255,16 +255,16 @@ def translate(formula, kind='both', norm=False, optimize=True):
         raise ValueError('DFA type must be either DFAType.Normal, ' +
                          'DFAType.Infinity or "both"! {} was given!'.format(kind))
 
-    lexer = twtlLexer(InputStream(formula))
-    tokens = CommonTokenStream(lexer)
-    parser = twtlParser(tokens)
-    phi = parser.formula()
+    # lexer = twtlLexer(InputStream(formula))
+    # tokens = CommonTokenStream(lexer)
+    # parser = twtlParser(tokens)
+    # phi = parser.formula()
 
-    # AST
-    ast = TWTLAbstractSyntaxTreeExtractor().visit(t)
+    # # AST
+    # ast = TWTLAbstractSyntaxTreeExtractor().visit(t)
     
 
-    alphabet = ast.propositions()
+    alphabet = ast.propositions() # More correctly in the current code the set of predicates 
     result= [alphabet]
 
     if DFAType.Normal in kind:
