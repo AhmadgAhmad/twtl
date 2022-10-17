@@ -1,0 +1,32 @@
+!!python/object:__main__.params
+
+
+
+
+
+name: "Double Integrator Example."
+description: ""
+specification: double_integrator_spec
+system :
+  type: double_integrator
+  initial_state: [-0.0, 0.0]
+  bound: [[-.5, 4], [-1, 1]]
+  control_bounds: [-1, 1]
+  dt: 0.1
+  color: [1, 0, 0, 1]
+simulation:
+  trajectory_file: trajectories_test.txt
+  video: {file: simple_scenario.mov, interval: 10000}
+  figures: {filename_template: "simple_scenario_frame_{frame:03d}.png"}
+planning:
+  #seed: 2003
+  seed: 100
+  planning_steps: 1000
+  gamma: 0.9
+  save_plt_flg: False
+  choice_function: random_simple
+#  choice_function: bandit_epsilon_greedy
+#  choice_function: bandit_epsilon_first
+#  choice_function: bandit_epsilon_decreasing
+  #choice_function: learn_knn
+  solution_filename: 'transition_system_test.txt'
