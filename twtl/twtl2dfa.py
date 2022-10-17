@@ -42,9 +42,14 @@ def twtl2dfa(formula_ast, props):
         dfa = complement(twtl2dfa(formula_ast.child))
     elif formula_ast.op == TWTLOperation.HOLD:
         # FIXME: does not work if ast_formula.proposition is a Boolean constant
-        dfa = hold(props, ast_formula.proposition, ast_formula.duration,
-                   negation=ast_formula.negated)
-    elif formula_ast.op == TWTLFormula.WITHIN:
+        if formula_ast.proposition is None:
+            dfa = hold(props, formula_ast.predicate, formula_ast.duration,
+                    negation=formula_ast.negated)
+        else:
+            dfa = hold(props, formula_ast.proposition, formula_ast.duration,
+                    negation=formula_ast.negated)
+
+    elif formula_ast.op == formula_ast.WITHIN:
         dfa = within(phi, int(low.text), int(high.text))
 
     return dfa

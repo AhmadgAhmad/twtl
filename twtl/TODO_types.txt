@@ -2,3 +2,4 @@ TODO [code opt]: Code optimization
 TODO [build code]: 
 TODO [sanity check]: 
 TODO [search chlng]: A challenge that involve retrieving a vertex from the value in X_free, and the like. 
+TODO [code cont]: Where you assumed a simple case and the code need to be extended to nontrivial case. 

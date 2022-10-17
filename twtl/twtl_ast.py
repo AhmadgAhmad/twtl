@@ -112,13 +112,23 @@ class TWTLFormula(object):
             return [self.low + child_bounds[0], self.high]
 
     def propositions(self):
-        '''Computes the set of propositions involved in the TWTL formula.'''
+        '''Computes the set of predicates/booleanExpr that are involved in the TWTL formula'''
         if self.op == Operation.HOLD:
-            return {self.proposition}
+            return {self.predicate}
         elif self.op in (Operation.AND, Operation.OR, Operation.CONCAT):
             return self.left.variables() | self.right.variables()
         elif self.op in (Operation.NOT, Operation.WITHIN):
             return self.child.variables()
+        
+        
+        
+        '''Computes the set of propositions involved in the TWTL formula.'''
+        # if self.op == Operation.HOLD:
+        #     return {self.proposition}
+        # elif self.op in (Operation.AND, Operation.OR, Operation.CONCAT):
+        #     return self.left.variables() | self.right.variables()
+        # elif self.op in (Operation.NOT, Operation.WITHIN):
+        #     return self.child.variables()
 
     def identifier(self):
         h = hash(self)
@@ -191,7 +201,7 @@ class TWTLAbstractSyntaxTreeExtractor(twtlVisitor):
             if pred_flg: 
 
                 pred = ctx.children[3]
-                pred_variable = pred.children[0].children[0].symbol.text
+                pred_variable = pred.children[0].children[0].symbol.text 
                 pred_relation = pred.children[1].symbol.text
                 pred_threshold = float(pred.children[2].children[0].symbol.text)
                 negated = ctx.negated is not None

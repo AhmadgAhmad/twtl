@@ -310,7 +310,7 @@ def relabel_dfa(dfa, mapping='default', start=0, copy=False):
     If copy is True a new copy of the DFA is returned, otherwise it performs an
     in-place relabeling.
     '''
-    if mapping is 'default': # default mapping
+    if mapping == 'default': # default mapping
         mapping = dict()
     keys = mapping.keys()
     nodes = [u for u in dfa.g.nodes_iter() if u not in keys]
