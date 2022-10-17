@@ -114,7 +114,10 @@ class TWTLFormula(object):
     def propositions(self):
         '''Computes the set of predicates/booleanExpr that are involved in the TWTL formula'''
         if self.op == Operation.HOLD:
-            return {self.predicate}
+            if self.proposition is None and self.predicate is not None:
+                return self.predicate.getText()
+            else: 
+                return self.proposition 
         elif self.op in (Operation.AND, Operation.OR, Operation.CONCAT):
             return self.left.variables() | self.right.variables()
         elif self.op in (Operation.NOT, Operation.WITHIN):
