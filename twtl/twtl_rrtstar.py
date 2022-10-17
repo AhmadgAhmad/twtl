@@ -19,7 +19,7 @@ TODO:
 # from cmath import inf
 import logging
 import itertools as it
-from re import T
+from re import S, T
 import time
 from collections import deque
 import time
@@ -36,9 +36,11 @@ from matplotlib import cm
 import plotly.graph_objects as go
 # import twtl.twtl  as twtl
 from antlr4 import InputStream, CommonTokenStream
-from twtl.twtl import translate
+from twtl import translate
 from twtlLexer import twtlLexer
 from twtlParser import twtlParser
+from twtl_ast import TWTLAbstractSyntaxTreeExtractor
+from twtl_ast import Operation as Op
 
 
 
@@ -149,30 +151,12 @@ class Tree(object):
 class Planner(object):
     '''Class for planner.'''
 
-    def __init__(self, system, specification, params,mission):
+    def __init__(self, specs_ast, twtl_formula):
         '''Constructor'''
-        self.system = system
-        self.specification = specification
-
-        # initialize RRT tree
-        self.ts = Tree()
-        self.ts.init = self.system.initial_state
-
-        self.steps = params['planning_steps']
-        self.gamma = params['gamma']
-        self.save_plt_flg = params['save_plt_flg']
-        self.mission = mission
-
-        if params['choice_function'] == 'random_simple':
-            self.choose = choose_random
-        else:
-            raise ValueError('Unknown choice function "%s"',
-                             params['choice_function'])
-
-        self.T_H = 1
-        self.min_step = 0.01
-        assert self.min_step < self.T_H
-
+        # self.system = system # for now we assume point dummy robot (evolvethe dynamics using linspace) TODO [code cont]: Incoroprate different types of dynamics 
+        self.specification = specs_ast  # as AST
+        self.twtl_formula = twtl_formula
+            
         # Importance sampling attributes: 
         self.ext_set = []
         self.elite_set = []
@@ -203,7 +187,20 @@ class Planner(object):
         self.twtl_ast = None
         self.twtlDFA = None
         self.PA = None          # the product automaton
-        self.TS
+        self.TS = None
+
+
+        # Planner params: 
+        self.seed  = 2000 
+        self.steps = 1000
+        self.gamma = 0.9
+        self.save_plt_flg = False
+        self.choose = choose_random
+        self.T_H = 1
+        self.min_step = 0.01
+        assert self.min_step < self.T_H
+
+    
 
     ##############
     ##############
@@ -1131,45 +1128,22 @@ def debug_show_ts(planner, system_type):
 
 def main():
     import sys, os.path
-    if len(sys.argv) > 1:
-    # load mission file
-        if sys.argv[1]=='di':
-            filename = '../case1_di.yaml'
-        elif sys.argv[1]=='rwc':
-            filename = '../case2_rwc.yaml'
-        else:
-            raise NotImplementedError
-    else:
-#         filename = '../cases/case2_rwc.yaml'
-        filename = '../case1_di.yaml'
+    
+    
 
-    # setting up logging
-    loglevel = logging.DEBUG
-    fs, dfs = '%(asctime)s %(levelname)s %(message)s', '%m/%d/%Y %I:%M:%S %p'
-    logging.basicConfig(stream=sys.stdout, level=loglevel, format=fs,
-                        datefmt=dfs)
+    # twtl_formula = '(H^2 x>=6) . (H^2 x<=4) . [H^2 x>=5]^[10,12]'
 
-    mission = Mission.from_file(filename)
-
-    # set seed
-    np.random.seed(mission.planning['seed'])
-
-    # load system model
-    system = load_system(mission.system)
-
-    # load specification TODO [twtl] load the twtl specs:
-    #-----------------------------------------------------------
-    specification = get_specification_ast(mission.specification) 
-    twtl_formula = '(H^2 x>=6) . (H^2 x<=4) . [H^2 x>=5]^[10,12]'
+    twtl_formula = '[H^3 x1>2 &&  H^3 x1<4 && H^3 x2>2 && H^3 x2<4]^[5,10]'
+    twtl_formula = '[H^3 A &&  H^3 B && H^3 C && H^3 C]^[5,10]'
+    twtl_formula = 'H^3 x1>2'
+    
     # twtl_formula = '(H^2 x>=6) . (H^2 x<=4) . (H^5 x>=5)'
     # twtl_formula = '[H^2 x>=5]^[3,12]'
     lexer = twtlLexer(InputStream(twtl_formula))
     tokens = CommonTokenStream(lexer=lexer)
     parser = twtlParser(tokens)
-    t = parser.formula()
-
-
-
+    phi = parser.formula()
+    twtl_ast =  TWTLAbstractSyntaxTreeExtractor().visit(phi)
     # ---------------------------------------------------------
 
     # logging.info('Specification time bound: %f', specification.bound)
@@ -1178,14 +1152,15 @@ def main():
     global current_k
     global epsilon
 
-    N = mission.planning['planning_steps']
     epsilon = 0.1
     current_k = 0
-    planner = Planner(system, specification, mission.planning,mission)
-    planner.twtl_ast  = t
-    twtlDFA = translate(formula=t ,norm=True)
+    planner = Planner(specs_ast=twtl_ast,twtl_formula = phi)    
+
+    np.random.seed(planner.seed)
+    twtlDFA = translate(ast=twtl_ast ,norm=True)
     Planner.twtlDFA = twtlDFA
     logging.info('Start solving:')
+    
 
     found = planner.solve()
     for x in planner.ts.nodes:
@@ -1199,12 +1174,6 @@ def main():
         logging.info('RoSI: %s', str([planner.ts.nodes[x][phi]['rosi']
                                           for x, phi in planner.ts.best_path]))
 
-    out_dir = '../cases'
-    ts_filename = os.path.join(out_dir, mission.planning['solution_filename'])
-    # with open(ts_filename, 'w') as fout:
-    #     print>>fout, planner.ts.nodes
-
-    debug_show_ts(planner, mission.system['type'])
 
     logging.info('Done!')
 
