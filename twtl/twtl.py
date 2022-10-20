@@ -269,7 +269,7 @@ def translate(ast, kind='both', norm=False, optimize=True):
 
     if DFAType.Normal in kind:
         setDFAType(DFAType.Normal)
-        dfa = twtl2dfa(ast, alphabet)
+        dfa = twtl2dfa(formula_ast=ast,props=alphabet)
         dfa.kind = DFAType.Normal
         result.append(dfa)
 
