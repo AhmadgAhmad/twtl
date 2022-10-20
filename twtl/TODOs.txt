@@ -21,3 +21,15 @@ As for 10.14.22:
     - What is the class of the automaton states? If networkX, can In add more attributes? 
 - Instantiate the product automaton 
 - Sample from the Sp taking into account the frequency of the s's
+
+
+
+$$$$$$$$$$$$$$ Where Should I resume: 
+
+- Define the specs using APs 
+- Create a method that maps from APs to predicates
+- Use that mapping function when computing the TWTL robustness 
+
+- Debug the robustness computation 
+- Debug the translator using ANTLR4 
+- Make sure the sampling based planning algorithm in fact works without the robustness and the TWTL stuff
