@@ -1136,7 +1136,8 @@ def main():
     twtl_formula = '[H^3 x1>2 &&  H^3 x1<4 && H^3 x2>2 && H^3 x2<4]^[5,10]'
     twtl_formula = '[H^3 A &&  H^3 B && H^3 C && H^3 C]^[5,10]'
     twtl_formula = 'H^3 x1>2'
-    
+    twtl_formula = 'H^3 A . H^5 B . [H^5 A]^[10,15]'
+    twtl_formula  = 'H^3 x<3 . H^4 A . H^7 x<3'
     # twtl_formula = '(H^2 x>=6) . (H^2 x<=4) . (H^5 x>=5)'
     # twtl_formula = '[H^2 x>=5]^[3,12]'
     lexer = twtlLexer(InputStream(twtl_formula))
@@ -1178,4 +1179,4 @@ def main():
     logging.info('Done!')
 
 if __name__ == '__main__':
-    main()
+     main()
