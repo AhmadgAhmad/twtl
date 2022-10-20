@@ -119,9 +119,11 @@ class TWTLFormula(object):
             else: 
                 return self.proposition 
         elif self.op in (Operation.AND, Operation.OR, Operation.CONCAT):
-            return self.left.variables() | self.right.variables()
+            left_pr = self.left.propositions()
+            right_pr = self.right.propositions()
+            return left_pr, right_pr
         elif self.op in (Operation.NOT, Operation.WITHIN):
-            return self.child.variables()
+            return self.child.propositions()
         
         
         
