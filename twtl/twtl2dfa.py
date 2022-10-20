@@ -40,11 +40,12 @@ def twtl2dfa(formula_ast, props):
             dfa = concatenation(dfa_left, dfa_right)
     elif formula_ast.op == TWTLOperation.NOT:
         dfa = complement(twtl2dfa(formula_ast.child))
-    elif formula_ast.op == TWTLOperation.HOLD:
+    elif formula_ast.op == TWTLOperation.HOLD: # This is the rho_hold function
         # FIXME: does not work if ast_formula.proposition is a Boolean constant
         if formula_ast.proposition is None:
-            dfa = hold(props, formula_ast.predicate, formula_ast.duration,
-                    negation=formula_ast.negated)
+            dfa = hold(props=formula_ast,prop=props,duration=formula_ast.duration,negation=formula_ast.negated)
+            # dfa = hold(props, formula_ast.predicate, formula_ast.duration,
+            #         negation=formula_ast.negated)
         else:
             dfa = hold(props, formula_ast.proposition, formula_ast.duration,
                     negation=formula_ast.negated)
