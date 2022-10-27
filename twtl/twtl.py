@@ -301,7 +301,7 @@ def translate(ast, kind='both', norm=False, optimize=True):
 
     return tuple(result)
 
-def robustness(formula,traj,time_traj,t1=None,t2=None,trace_test = None):#t1=0,t2=None,shift = 0):
+def robustness(formulaAST,traj,time_traj,t1=None,t2=None,trace_test = None):#t1=0,t2=None,shift = 0):
     '''
     - Ahmad Ahmad 
 
@@ -320,10 +320,10 @@ def robustness(formula,traj,time_traj,t1=None,t2=None,trace_test = None):#t1=0,t
     #------------------------------------------
     # n_traces = trace.number_signals()
     # traj = 111111
-    if formula.op == Op.NOP: #Predicated proposition 
+    if formulaAST.op == Op.NOP: #Predicated proposition 
         pass
-    elif formula.op == Op.HOLD:
-        d = formula.duration
+    elif formulaAST.op == Op.HOLD:
+        d = formulaAST.duration
         if len(time_traj)==0:
             return float('-Inf')
         if t1 is None and t2 is None:
@@ -332,54 +332,54 @@ def robustness(formula,traj,time_traj,t1=None,t2=None,trace_test = None):#t1=0,t
         if t2 - t1 < d:
             rho = float('-Inf')
         else: 
-            trace_test.value(formula.variable,times[0])
-            if formula.relation in ('>=','>'):#(Op.GE, Op.GT):
-                rs =  [value - formula.threshold for value in traj[times[0]-1:times[-1]]]
-            elif formula.relation in ('<=','<'):#(Op.LE, Op.LT):
-                rs =  [formula.threshold - value for value in traj[times[0]-1:times[-1]]]
-            elif formula.relation == Op.EQ:
-                rs = [-np.abs(value - formula.threshold) for value in traj[times[0]-1:times[-1]]]
-            elif formula.relation == Op.NQ:
-                rs = [np.abs(value - formula.threshold) for value in traj[times[0]-1:times[-1]]]
+            trace_test.value(formulaAST.variable,times[0])
+            if formulaAST.relation in ('>=','>'):#(Op.GE, Op.GT):
+                rs =  [value - formulaAST.threshold for value in traj[times[0]-1:times[-1]]]
+            elif formulaAST.relation in ('<=','<'):#(Op.LE, Op.LT):
+                rs =  [formulaAST.threshold - value for value in traj[times[0]-1:times[-1]]]
+            elif formulaAST.relation == Op.EQ:
+                rs = [-np.abs(value - formulaAST.threshold) for value in traj[times[0]-1:times[-1]]]
+            elif formulaAST.relation == Op.NQ:
+                rs = [np.abs(value - formulaAST.threshold) for value in traj[times[0]-1:times[-1]]]
             rho = min(rs)
-            if formula.negated:
+            if formulaAST.negated:
                 rho = -rho
         return rho
-    elif formula.op == Op.WITHIN:
+    elif formulaAST.op == Op.WITHIN:
         if len(time_traj)==0:
             return float('-inf')
         if t1 is None and t2 is None:
             t1,t2 = time_traj[0],time_traj[-1]
-        if t2 - t1 < formula.high:
+        if t2 - t1 < formulaAST.high:
             rho = float('-Inf')
         else:
-            times = [t for t in time_traj if t1+formula.low <= t <= t1+formula.high]
-            rho = [robustness(formula = formula.child, traj = traj, time_traj=times,t1 = t, t2 = time_traj[0]+formula.high) for t in times] # These are predicated propositions 
+            times = [t for t in time_traj if t1+formulaAST.low <= t <= t1+formulaAST.high]
+            rho = [robustness(formulaAST = formulaAST.child, traj = traj, time_traj=times,t1 = t, t2 = time_traj[0]+formulaAST.high) for t in times] # These are predicated propositions 
             rho = max(rho)
         return rho
-    elif formula.op in (Op.OR,Op.AND):
+    elif formulaAST.op in (Op.OR,Op.AND):
         # times = [t]
-        rho = [robustness(formula= f,traj=traj,time_traj=time_traj, trace_test=trace_test) for f in [formula.left,formula.right]]
-        if formula.op == Op.OR: 
+        rho = [robustness(formulaAST= f,traj=traj,time_traj=time_traj, trace_test=trace_test) for f in [formulaAST.left,formulaAST.right]]
+        if formulaAST.op == Op.OR: 
             rho = max(rho)
         else: 
             rho = min(rho)
-    elif formula.op == Op.NOT: 
-        rho = -robustness(formula= formula,traj=traj,time_traj=time_traj)
-    elif formula.op == Op.CONCAT:
+    elif formulaAST.op == Op.NOT: 
+        rho = -robustness(formulaAST= formulaAST,traj=traj,time_traj=time_traj)
+    elif formulaAST.op == Op.CONCAT:
         times = time_traj
         rhomx = float('-inf')
         for t in times[:]:
             times_l = [tt for tt in times if times[0] <= tt <=t]
             times_r = [tt for tt in times if t+1<=tt<=times[-1]]
-            rho_l =  robustness(formula= formula.left,traj=traj,time_traj=times_l)
-            rho_r =  robustness(formula= formula.right,traj=traj,time_traj=times_r)
+            rho_l =  robustness(formulaAST= formulaAST.left,traj=traj,time_traj=times_l)
+            rho_r =  robustness(formulaAST= formulaAST.right,traj=traj,time_traj=times_r)
             rho = min(rho_l,rho_r)
             if rho>rhomx:
                 rhomx = rho
         return rhomx 
     else: 
-        raise('You are not accounting for op:%d',formula.op)
+        raise('You are not accounting for op:%d',formulaAST.op)
 
     
     

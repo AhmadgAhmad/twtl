@@ -1140,11 +1140,19 @@ def main():
     twtl_formula  = 'H^3 x<3 . H^4 A . H^7 x<3'
     # twtl_formula = '(H^2 x>=6) . (H^2 x<=4) . (H^5 x>=5)'
     # twtl_formula = '[H^2 x>=5]^[3,12]'
+    
+    # >>> Define the  specs using APs as well as linear    
+    twtl_formula = 'H^3 A . H^5 B . [H^5 A]^[10,15]'
+    A = 'x1>2 && x1<3 && x2>2 && x2<3' 
+    B = 'x1>4 && x2<3'
+
     lexer = twtlLexer(InputStream(twtl_formula))
     tokens = CommonTokenStream(lexer=lexer)
     parser = twtlParser(tokens)
     phi = parser.formula()
     twtl_ast =  TWTLAbstractSyntaxTreeExtractor().visit(phi)
+    twtlDFA = translate(ast=twtl_ast ,norm=True)
+
     # ---------------------------------------------------------
 
     # logging.info('Specification time bound: %f', specification.bound)
