@@ -1150,9 +1150,10 @@ def main():
     tokens = CommonTokenStream(lexer=lexer)
     parser = twtlParser(tokens)
     phi = parser.formula()
+
     twtl_ast =  TWTLAbstractSyntaxTreeExtractor().visit(phi)
     twtlDFA = translate(ast=twtl_ast ,norm=True)
-
+    lexer.VARIABLE
     # ---------------------------------------------------------
 
     # logging.info('Specification time bound: %f', specification.bound)
