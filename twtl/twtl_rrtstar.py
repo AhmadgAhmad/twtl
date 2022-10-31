@@ -17,6 +17,8 @@ TODO:
 '''
 
 # from cmath import inf
+from ast import Del
+from ftplib import parse150
 import logging
 import itertools as it
 from re import S, T
@@ -24,7 +26,7 @@ import time
 from collections import deque
 import time
 import timeit
-
+import random
 import numpy as np, sys
 from numpy.random import uniform, exponential, randint
 from sklearn.neighbors import KDTree
@@ -84,17 +86,19 @@ def choose_random(x1, x2, I1, I2, rho_max):
 
 # >>>>>>>>>>>> TWTL-RRT classes <<<<<<<<<<<<<<<<<<<<<<<<
 class PA(object):
-    def __init__(self):
-        self.SP = None
-        self.VTS = None
-        self.Satmtn = None
-        # TS and the specs automaton (might not be needed): 
-        self.Atmtn = None # For TWTL this is a DFA
-        self.TS = None    # This will be the tree that we build incrementally 
-    
+    '''
+    The product automaton class
+    '''
+    def __init__(self,p0 = None,pf = None,Sp= None,Del_p = None,Fp = None,Sa = None):
+        self.Sp = Sp
+        self.p0 = p0 
+        self.pf = pf 
+        self.Del_p = Del_p
+        self.Fp = Fp 
+        self.Sa = Sa # the set of automaton states 
     def smpl_nonEty_s(self): 
         '''
-        sample a spec automaton state, s, such that it has a correspondance PA states, i.e., there are TS states in that region
+        sample a spec automaton state, s, such that it has a correspondence PA states, i.e., there are TS states in that region
         '''
         pass
     def smpl_s(self):
@@ -105,6 +109,24 @@ class PA(object):
 
     def smpl_TS_x(self):
         pass
+
+    def sample(self,x_rand):
+        '''
+        
+        '''
+        assert x_rand is not None
+        Sp = self.Sp 
+        Sa = self.Sa 
+        s = []
+        Sps = [sa['s'] for sa in Sp ]
+        while True:
+            s = random.sample(Sa,1)
+            if s[0] in Sps:
+                break
+        Vs = [xts['x'] for xts in Sp if xts['s']==s[0]] # with s being the specs automaton state:  
+        x_exp = nearest(Vs,x_rand)
+        
+        return x_exp, s[0]
     
     def update_PA(self):
         pass
@@ -125,16 +147,27 @@ class PAstate(object):
         pass
 
 class TS(object):
-    def __init__(self):
+    def __init__(self,x0):
         self.V = None           # the set of vertices 
         self.E = None           # the set of edges, aka transitons 
         self.dynamics = None    # the actual underlying dynamics that TS is an abstraction for. 
-    
+        self.x0  = x0           # the initial state 
+        self.APs = []           # The set of APs
+        
+        
     def steer(self):
+        '''
+        This function generates transitions from the set of feasible transitions 
+        '''
         pass 
     def update(self):
         pass 
-
+    
+    def L(self):
+        '''
+        This function labels the observations based off the APs
+        '''
+        pass
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
@@ -151,12 +184,15 @@ class Tree(object):
 class Planner(object):
     '''Class for planner.'''
 
-    def __init__(self, specs_ast, twtl_formula):
+    def __init__(self, specs_ast  = [], twtl_formula = []):
         '''Constructor'''
         # self.system = system # for now we assume point dummy robot (evolvethe dynamics using linspace) TODO [code cont]: Incoroprate different types of dynamics 
         self.specification = specs_ast  # as AST
         self.twtl_formula = twtl_formula
-            
+
+        self.x0 = 0
+        self.s0 = 0
+
         # Importance sampling attributes: 
         self.ext_set = []
         self.elite_set = []
@@ -191,6 +227,7 @@ class Planner(object):
 
 
         # Planner params: 
+        self.mission = None
         self.seed  = 2000 
         self.steps = 1000
         self.gamma = 0.9
@@ -368,27 +405,16 @@ class Planner(object):
     #$#$#$#$#$#$#$#$#$# the main planning loop: 
     def solve(self):
         '''
-        TODO: - Inspect every newlly added edge to the tree, 
+        Solve the motion planning problem:  
         '''
-        Aphi = self.DFA
         
-        #------
-        self.initialize()  
-        # 1) the workspace
-        # 2) the TS
-        # 3) the TWTL automaton 
-        # 4) the product automaton 
-        # 5) 
-        #-----
-        
-        
+        bounds = self.mission.system['bound']
+        x_rand = np.random.uniform([bounds[0][0],bounds[1][0]],[bounds[0][1],bounds[1][1]])
+        p_rand = self.PA.sample(x_rand) # Sample a product automaton state
         
         #=================================================================
         #=================================================================
         #=================================================================
-
-        self.initialize()
-
         runtimes = []
         rhos = [] 
         extensions_set = []
@@ -495,40 +521,36 @@ class Planner(object):
             return True
         return False
 
-    def initialize(self):
-        
-        
-        initial_state = self.ts.init #This will esentially be the RRT* tree
-        #=============================================
-        #=============================================
-        #=============================================
-        '''Initializes the planner.'''
-        initial_state = self.ts.init
+    def initialize(self, twtl_formula = None, x0 = None, s0 = None):
+     
+        # Translate the twtl formula into a DFA: 
+        assert twtl_formula is not None
+        lexer = twtlLexer(InputStream(twtl_formula))
+        tokens = CommonTokenStream(lexer=lexer)
+        parser = twtlParser(tokens)
+        phi = parser.formula()
+        twtl_ast =  TWTLAbstractSyntaxTreeExtractor().visit(phi)
+        DFAresult = translate(ast=twtl_ast,norm=True)
+        self.DFAphi = DFAresult[1] # The determenstic finite automaton of the twtl specifications  
+        # Instantiate the transition system (will be built incrementally); essentially the RRT* tree: 
+        self.TS = TS(x0 = x0) 
+         
+        # Instantiate the product automaton: 
+        p0 = {'s': self.DFAphi.init[0], 'x': self.TS.x0}
+        pf = {'s': self.DFAphi.final.pop(), 'x': self.TS.x0}
+        Sp = [p0]
+        Del_p = []
+        Fp = [pf]
+        self.PA = PA(p0 = p0, pf = pf, Sp= Sp, Del_p= Del_p, Fp = Fp,Sa=self.DFAphi.g.nodes())
+        # environment instantiation: 
+        filename = '/home/ahmad/Desktop/twtl/twtl/case1_point_robot.yaml'
+        mission = Mission.from_file(filename)
+        # set seed
+        np.random.seed(mission.planning['seed'])
 
-        self.ts.nodes.clear()
-        # FIXME: assumes that the spec does not have a disjunction as root'
-        trajectory = [[initial_state], [0.0]]
-        init_rosi = self.specification.rosi(trajectory)   # How to build the completions set. 
-        init_rosi = self.twtl_ast.rosi(trajectory)
-        self.ts.add_node(initial_state,
-            attr_dict = {self.specification: {
-#                              'costFromParent' : 0,
-#                              'costFromRoot' : 0,
-                             'parent': None,
-                             'children': set(),
-                             'trajectory': trajectory,
-                             'time': 0.0,
-                             'rosi': init_rosi,
-                             'control': None,
-                             'chi': self.chi(trajectory, self.specification, 0),
-                             'ext_traj': trajectory
-                            }
-                        })
-#         self.ts.g.best_path = deque([])
-        self.ts.maxtime = 0.0
-
-        self.lowerBoundCost = DBL_MAX
-        self.lowerBoundVertex = None
+        # load system model
+        system = load_system(mission.system)
+        self.mission = mission 
 
     def chi(self, traj, phi, t):
         '''FIXME: inefficient, should store RoSI for subformulae
@@ -1130,6 +1152,23 @@ def main():
     import sys, os.path
     
     
+    #XXX
+    #-------------
+    # Planner Class instentiation: 
+    planner = Planner() 
+    # Initialize the planning algorithm (Line 3 - 4):
+    x0 = (0,0)
+    s0 = 0
+    twtl_formula = 'H^3 A . H^5 B . [H^5 A]^[10,15]'
+    twtl_formula = 'H^3 A'
+    
+    planner.initialize(twtl_formula,x0 = x0, s0 = s0)
+    # Solve the planning problem (Line 6 - 30):   
+    planner.solve()
+    #-------------
+    #XXX
+
+
 
     # twtl_formula = '(H^2 x>=6) . (H^2 x<=4) . [H^2 x>=5]^[10,12]'
 
