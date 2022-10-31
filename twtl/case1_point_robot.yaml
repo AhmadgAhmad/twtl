@@ -1,0 +1,27 @@
+!!python/object:__main__.Mission
+name: "point robot"
+description: ""
+specification: pt_robot_spec
+system :
+  type: pt_robot
+  initial_state: [-0.0, 0.0]
+  bound: [[-0.5, 4], [-1, 1]]
+  control_bounds: [-1, 1]
+  dt: 0.1
+  color: [1, 0, 0, 1]
+simulation:
+  trajectory_file: pt_robot_trajectories_test.txt
+  video: {file: pt_robot_simple_scenario.mov, interval: 10000}
+  figures: {filename_template: "pt_robot_simple_scenario_frame_{frame:03d}.png"}
+planning:
+  #seed: 2003
+  seed: 100
+  planning_steps: 1000
+  gamma: 0.9
+  save_plt_flg: False
+  choice_function: random_simple
+#  choice_function: bandit_epsilon_greedy
+#  choice_function: bandit_epsilon_first
+#  choice_function: bandit_epsilon_decreasing
+  #choice_function: learn_knn
+  solution_filename: 'pt_Robot_TS_test.txt'
