@@ -19,7 +19,10 @@ license_text='''
 '''
 
 
+# from twtl import twtl
+# from twtl import twtl_ast
 from twtl_ast import Operation as TWTLOperation
+import twtl_ast
 from dfa import complement, concatenation, hold, intersection, union, within
 
 
@@ -30,8 +33,8 @@ def twtl2dfa(formula_ast, props):
 
     if formula_ast.op in (TWTLOperation.OR, TWTLOperation.AND,
                           TWTLOperation.CONCAT):
-        dfa_left = twtl2dfa(formula_ast.left)
-        dfa_right = twtl2dfa(formula_ast.right)
+        dfa_left = twtl2dfa(formula_ast.left,props=props)
+        dfa_right = twtl2dfa(formula_ast.right, props= props)
         if formula_ast.op == TWTLOperation.OR:
             dfa = union(dfa_left, dfa_right)
         elif formula_ast.op == TWTLOperation.AND:
@@ -43,14 +46,16 @@ def twtl2dfa(formula_ast, props):
     elif formula_ast.op == TWTLOperation.HOLD: # This is the rho_hold function
         # FIXME: does not work if ast_formula.proposition is a Boolean constant
         if formula_ast.proposition is None:
-            dfa = hold(props=formula_ast,prop=props,duration=formula_ast.duration,negation=formula_ast.negated)
+            dfa = hold(props=props,prop='A',duration=formula_ast.duration,negation=formula_ast.negated)
             # dfa = hold(props, formula_ast.predicate, formula_ast.duration,
             #         negation=formula_ast.negated)
         else:
             dfa = hold(props, formula_ast.proposition, formula_ast.duration,
                     negation=formula_ast.negated)
 
-    elif formula_ast.op == formula_ast.WITHIN:
-        dfa = within(phi, int(low.text), int(high.text))
+    elif formula_ast.op == TWTLOperation.WITHIN:
+        low,high = int(formula_ast.low), int(formula_ast.high)
+        childDFA = twtl2dfa(formula_ast=formula_ast.child,props=props)
+        dfa = within(childDFA, low, high)
 
     return dfa

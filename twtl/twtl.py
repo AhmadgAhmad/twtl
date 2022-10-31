@@ -264,8 +264,10 @@ def translate(ast, kind='both', norm=False, optimize=True):
     # ast = TWTLAbstractSyntaxTreeExtractor().visit(t)
     
 
-    alphabet = ast.propositions() # More correctly in the current code the set of predicates 
+    # alphabet = ast.propositions() # More correctly in the current code the set of predicates 
+    alphabet = set(['A','B'])
     result= [alphabet]
+
 
     if DFAType.Normal in kind:
         setDFAType(DFAType.Normal)

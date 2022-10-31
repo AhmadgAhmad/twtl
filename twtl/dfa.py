@@ -386,7 +386,7 @@ def hold(props, prop, duration, negation=False):
     bitmaps = dfa.get_guard_bitmap(guard)
 
     ngen = it.count()
-    nodes = [ngen.next() for _ in range(duration+2)]
+    nodes = [ngen.__next__() for _ in range(duration+2)]
     attr_dict={'weight': 0, 'input': bitmaps, 'guard' : guard, 'label': guard}
     dfa.g.add_path(nodes, **attr_dict)
 
@@ -430,8 +430,8 @@ def concatenation(dfa1, dfa2):
     # relabel the two DFAs to avoid state name collisions and merge the final
     # state of dfa1 with the initial state of dfa2
     relabel_dfa(dfa1, start=0)
-    init2 = dfa2.init.keys()[0]
-    final1 = iter(dfa1.final).next()
+    init2 = list(dfa2.init.keys())[0]
+    final1 = iter(dfa1.final).__next__()
     relabel_dfa(dfa2, mapping={init2: final1}, start=dfa1.g.number_of_nodes())
     assert len(set(dfa1.g.nodes()) & set(dfa2.g.nodes())) == 1
     dfa.g.add_edges_from(dfa1.g.edges_iter(data=True))
@@ -637,7 +637,7 @@ def eventually(phi_dfa, low, high):
     dfa = phi_dfa.clone()
     dfa.name = '(Eventually {} {} {} )'.format(phi_dfa.name, low, high)
 
-    init = dfa.init.keys()[0]
+    init = list(dfa.init.keys())[0]
     for state in dfa.g.nodes():
         bitmaps = set()
         guard = '(else)'
@@ -654,7 +654,7 @@ def eventually(phi_dfa, low, high):
         guard = '(1)'
         bitmaps = dfa.get_guard_bitmap(guard)
         ngen = it.count(start=dfa.g.number_of_nodes())
-        nodes = [ngen.next() for _ in range(low)]
+        nodes = [ngen.__next__() for _ in range(low)]
         attr_dict={'weight': 0, 'input': bitmaps, 'guard' : guard,
                    'label': guard}
         dfa.g.add_path(nodes, **attr_dict)
@@ -674,7 +674,7 @@ def repeat(phi_dfa, low, high):
     assert len(phi_dfa.init) == 1
     assert len(phi_dfa.final) == 1
 
-    init_state = phi_dfa.init.keys()[0]
+    init_state = list(phi_dfa.init.keys())[0]
     final_state = set(phi_dfa.final).pop()
 
     # remove trap states if there are any
@@ -699,7 +699,7 @@ def repeat(phi_dfa, low, high):
         truncate_dfa(dfa_aux, cutoff=(high-low+1)-k)
         # 3. add truncated dfa_aux to dfa
         dfa.g.add_edges_from(dfa_aux.g.edges_iter(data=True))
-        inits.append(dfa_aux.init.keys()[0])
+        inits.append(list(dfa_aux.init.keys())[0])
         nstates += dfa_aux.g.number_of_nodes()
     # set initial and final state
     dfa.init = {inits[0] : 1}
@@ -731,11 +731,11 @@ def repeat(phi_dfa, low, high):
         guard = '(1)'
         bitmaps = dfa.get_guard_bitmap(guard)
         ngen = it.count(start=dfa.g.number_of_nodes())
-        nodes = [ngen.next() for _ in range(low)]
+        nodes = [ngen.__next__() for _ in range(low)]
         attr_dict={'weight': 0, 'input': bitmaps, 'guard' : guard,
                    'label': guard}
         dfa.g.add_path(nodes, **attr_dict)
-        dfa.g.add_edge(nodes[-1], dfa.init.keys()[0], attr_dict)
+        dfa.g.add_edge(nodes[-1], list(dfa.init.keys())[0], attr_dict)
         dfa.init = {nodes[0] : 1}
 
     logger.debug('[within] Low: %d High: %d DFA: %s', low, high, phi_dfa.name)
@@ -751,7 +751,7 @@ def truncate_dfa(dfa, cutoff):
     NetworkX is available at http://networkx.github.io.
     '''
     assert len(dfa.init) == 1 # deterministic model
-    source = dfa.init.keys()[0]
+    source = list(dfa.init.keys())[0]
 
     # compute transitions which form path of length at most cutoff in the dfa
     visited = set([source])

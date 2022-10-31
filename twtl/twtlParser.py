@@ -1,4 +1,4 @@
-# Generated from twtl.g4 by ANTLR 4.7.2
+# Generated from twtl.g4 by ANTLR 4.7.1
 # encoding: utf-8
 from antlr4 import *
 from io import StringIO
@@ -121,7 +121,7 @@ class twtlParser ( Parser ):
 
     def __init__(self, input:TokenStream, output:TextIO = sys.stdout):
         super().__init__(input, output)
-        self.checkVersion("4.7.2")
+        self.checkVersion("4.7.1")
         self._interp = ParserATNSimulator(self, self.atn, self.decisionsToDFA, self.sharedContextCache)
         self._predicates = None
 
@@ -184,6 +184,12 @@ class twtlParser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitFormula" ):
                 listener.exitFormula(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitFormula" ):
+                return visitor.visitFormula(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -366,6 +372,12 @@ class twtlParser ( Parser ):
             if hasattr( listener, "exitBooleanExpr" ):
                 listener.exitBooleanExpr(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitBooleanExpr" ):
+                return visitor.visitBooleanExpr(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -450,6 +462,12 @@ class twtlParser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitExpr" ):
                 listener.exitExpr(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitExpr" ):
+                return visitor.visitExpr(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
