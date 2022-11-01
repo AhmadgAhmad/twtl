@@ -1,0 +1,24 @@
+
+
+
+
+
+
+List of attributes: 
+- DFAphi
+- DFApa 
+- TS 
+
+
+
+
+
+where I'm now: 
+- Translated the twtl formula into a DFA: 
+    Inspect the initial state of the automaton after translation 
+
+initialize the environment:
+    - extract from yaml file 
+Go through the basic loop: 
+ - Assuming that you have a valid sample from the product automaton   
+ - 
