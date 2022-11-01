@@ -36,13 +36,16 @@ class ptRobot(object):
         self.dim = len(self.bound)
         self.dt = float(params['dt'])
 
-    def steer(self, x0, xd, d_steer, ti, u=None, eta=0.2):
+    def steer(self, x0, xd, d_steer, ti, exct_flg = True, u=None, eta=0.2):
         #(initial_state, final_state, starting_time, ending_time)
         '''Steering primitive.'''
         x0 = np.asarray(x0)
         xd = np.asarray(xd)
-        theta_d= math.atan2( xd[1]-x0[1],xd[0]-x0[0])
-        xf = np.array([d_steer*math.cos(theta_d),d_steer*math.sin(theta_d)])
+        if exct_flg:
+            xf = np.array([d_steer*math.cos(theta_d),d_steer*math.sin(theta_d)])
+        else:
+            theta_d= math.atan2( xd[1]-x0[1],xd[0]-x0[0])
+            xf = np.array([d_steer*math.cos(theta_d),d_steer*math.sin(theta_d)])
         nsteps = int(abs(x0[0]-xf[0])/(self.dt*1.0))        
         traj = np.linspace(x0,xf,nsteps)
         t_traj = np.linspace(ti,nsteps*self.dt,nsteps)
