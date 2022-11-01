@@ -21,7 +21,85 @@ def load_system(params):
         return DoubleIntegrator(params)
     elif params['type'] == 'rear_wheel_car':
         return RearWheelCar(params)
+    elif params['type'] == 'pt_robot':
+        return ptRobot(params)
     raise ValueError('Unknown system %s!', str(params['type']))
+
+class ptRobot(object):
+    '''
+    Simple point robot class
+    '''
+    def __init__(self,params):
+        assert params['type'] == 'pt_robot'
+        self.bound = tuple([tuple(map(float, b)) for b in params['bound']])
+        self.control_bounds = tuple([float(b) for b in params['control_bounds']])
+        self.dim = len(self.bound)
+        self.dt = float(params['dt'])
+
+    def steer(self, x0, xf, ti, u=None, eta=0.2):
+        #(initial_state, final_state, starting_time, ending_time)
+        '''Steering primitive.'''
+        x0 = np.asarray(x0)
+        xf = np.asarray(xf)
+        
+        nsteps = int(abs(x0[0]-xf[0])/(self.dt*1.0))        
+        trajx1 = np.linspace(x0[0],xf[0],nsteps)
+        trajx2 = np.linspace(x0[1],xf[1],nsteps)
+        t_traj = np.linspace(ti,nsteps*self.dt,nsteps)
+        return trajx1,trajx2,t_traj 
+    
+    def sample_us(self,Td, n_s = 6):
+        '''
+        Given the robot dynamics, this function generates a sequence of "n_s" control inputs, each of which is applied for "T". 
+        "n_s" is a tuning param, such that, Td = n_s * T  
+        Td: time duration of the generated control inputs
+        n_s: 
+        '''
+        # TODO [code_opt] - Is it more efficient to return an explicit control sequence with respect to the simulation time step (dt) [could be used in evolving the dynamics with vectorized computation]? 
+        #                 - Is it more efficient to return control actions primitives  
+        u_bounds = self.control_bounds
+        lb = u_bounds[0]/2.5
+        ub = u_bounds[1]/2.5
+        # lb = 0 
+        # ub = 1.5 
+        T = Td*1.0/n_s # the time duration for each control input of the control sequence  
+        dt = self.dt
+        n_i = math.ceil(T/dt) # Number of applying the same control input 
+        map_bnd = lambda x: (ub-lb)*x + (lb)
+        vfunc = np.vectorize(map_bnd)
+        u_seq = np.array([])
+        for i in range(n_s): 
+            #Uniform sampling, TODO [traj_smplng] we could play as well with the sampler of the control sequence 
+            u_rand = vfunc(np.repeat(np.random.sample(1),n_i))
+            u_seq = np.concatenate((u_seq,u_rand),axis=None)
+        return list(u_seq)
+
+    def steer_undrU(self,x0,ti,u_seq):
+        '''
+        Given an open loop control inputs, u_ol, with the corres[ponding time traj, evolve the system and compute the J_chi.
+        Evaluate the elite set based on J_chi of the ending location of the generated trajectory: 
+        - u_ol   : Randomly generated control inputs 
+        - t_traj : time trajectory (computed based on sub-time horizons)
+        - x_0    : The state of the vertex we are extending 
+        Note: This function differes from CE-RRT* in a since that we don't extend to the goal, becayuse we don't have a well defined goal, 
+        rather, we have STL specs. 
+        As a starting trial, we evalute the elite set based upon J_chi of the latest added vertex of the random sample. 
+        '''
+        nt = len(u_seq)
+        dt = self.dt
+        t = np.linspace(dt, nt*dt+dt, num=int(nt))
+        traj = []
+        x1_0 = x0[0]
+        x2_0 = x0[1]
+        for u in u_seq: 
+            x1_1 = x1_0 + x2_0 * dt
+            x2_1 = x2_0 + u * dt  
+            x = (x1_1,x2_1)     
+            traj.append(x)
+            x1_0 = x1_1
+            x2_0 = x2_1
+        return u_seq, (traj, list(ti + t)), traj[-1]
+
 
 
 class DoubleIntegrator(object):
