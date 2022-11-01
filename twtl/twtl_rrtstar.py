@@ -124,8 +124,12 @@ class PA(object):
             if s[0] in Sps:
                 break
         Vs = [xts['x'] for xts in Sp if xts['s']==s[0]] # with s being the specs automaton state:  
-        x_exp = nearest(Vs,x_rand)
-        
+        # The tree of the NNs (we cannot build it outside)
+        tempTree = KDTree(Vs, leaf_size=2) #TODO (meeting) build out of here (when adding a vertex to the tree)
+
+        # The index of the NN vertex (it is different than indexID of the vertex)
+        nn_currIndex = int(tempTree.query(x_rand.reshape([1, 2]), k=1, return_distance=False))
+        x_exp = Vs[nn_currIndex]
         return x_exp, s[0]
     
     def update_PA(self):
@@ -154,12 +158,6 @@ class TS(object):
         self.x0  = x0           # the initial state 
         self.APs = []           # The set of APs
         
-        
-    def steer(self):
-        '''
-        This function generates transitions from the set of feasible transitions 
-        '''
-        pass 
     def update(self):
         pass 
     
@@ -228,6 +226,7 @@ class Planner(object):
 
         # Planner params: 
         self.mission = None
+        self.system = None
         self.seed  = 2000 
         self.steps = 1000
         self.gamma = 0.9
@@ -407,11 +406,13 @@ class Planner(object):
         '''
         Solve the motion planning problem:  
         '''
-        
+        d_steer = 1
         bounds = self.mission.system['bound']
         x_rand = np.random.uniform([bounds[0][0],bounds[1][0]],[bounds[0][1],bounds[1][1]])
-        p_rand = self.PA.sample(x_rand) # Sample a product automaton state
-        
+        x_exp, s_rand = self.PA.sample(x_rand) # Sample a product automaton state
+        traj, t_traj = self.system.steer(x0 = x_exp, xd= x_rand, d_steer = d_steer, ti = 0)
+        x_new = traj[-1,:]
+        a = 2
         #=================================================================
         #=================================================================
         #=================================================================
@@ -551,361 +552,10 @@ class Planner(object):
         # load system model
         system = load_system(mission.system)
         self.mission = mission 
-
-    def chi(self, traj, phi, t):
-        '''FIXME: inefficient, should store RoSI for subformulae
-        FIXME: assumes that t corresponds to the last state in the traj TODO [Ahmad] this function is recursive 
-        '''
-        assert round(t,10) == round(traj[1][-1],10)
-
-        if phi.op == STL.BOOLEAN:
-            dis = np.zeros((self.system.dim))
-        elif phi.op == STL.PRED:
-            dis = np.zeros((self.system.dim))
-            x = traj[0][-1]
-            dis[phi.var_idx] = self.system.maxf(x, phi.var_idx,
-                                                positive=phi.rel == STL.GREATER)
-        elif phi.op == STL.NOT:
-            dis = -self.chi(traj, phi.subformula, t)
-        elif phi.op in (STL.OR, STL.AND):
-            vec = [(self.chi(traj, f, t), f.rosi(traj, t)) for f in phi.subformulae]
-            dis, rosi = vec.pop()
-            for d, r in vec:
-                dc, rc, dnc, _ = self.choose(dis, d, rosi, r,
-                                             self.specification.space.rho_max)
-                rosi = rc
-                dis = blend(dc, dnc)
-        elif phi.op in (STL.EVENTUALLY, STL.ALWAYS):
-            dis = self.chi(traj, phi.subformula, t)
-        elif phi.op == STL.UNTIL:
-            raise NotImplementedError
-        else:
-            raise ValueError('Unknown operation, opcode: %d!', phi.op)
-
-        assert not any(np.isnan(dis)), phi.op
-        assert len(dis) == self.system.dim
-        print(dis)
-        return dis
+        self.system = system
 
     
-    def ufrm_sample(self):
-        '''
-        Adapt the SDF and generate sample in the workspace based upon the sampled time
-        '''
-        t_max = min(self.ts.maxtime, self.specification.bound)
-        t_rand = uniform(low=0, high=t_max) # TODO [ahmad] based on the sampled time, and the active predicate 
-
-#       t_rand = max(0, t_max - exponential(scale=0.5))
-
-        P_active = self.specification.active(t_rand)
-        P = set([])
-        while P_active:
-            p1 = P_active.pop()
-            for p2 in P_active:
-                if p1.mutually_exclusive(p2):
-                    P_active.remove(p2)
-                    if bernoulli():
-                        P.add(p1)
-                    else:
-                        P.add(p2)
-                    break
-            else:
-                P.add(p1)
-
-        low, high = np.array(self.system.bound).T
-        for p in P:
-            if p.rel == STL.LESS:
-                high[p.var_idx] = p.mu
-            else:
-                low[p.var_idx] = p.mu
-        # TODO [PY2]>>>
-        # return t_rand, tuple([uniform(l, h) for l, h in it.izip(low, high)])
-        # TODO [PY2]<<<
-        # TODO [PY3]>>>
-        return t_rand, tuple([uniform(l, h) for l, h in it.zip_longest(low, high)])
-        # TODO [PY3]<<<
-    def sample_dummy(self):
-        #TODO [smplng] : Sample from the importance sampling distribution 
-        '''Generates a random time and state.'''
-        t_max = min(self.ts.maxtime, self.specification.bound)
-        t_rand = uniform(low=0, high=t_max)
-#         t_rand = max(0, t_max - exponential(scale=0.5))
-
-        P_active = self.specification.active(t_rand)
-        P = set([])
-        while P_active:
-            p1 = P_active.pop()
-            for p2 in P_active:
-                if p1.mutually_exclusive(p2):
-                    P_active.remove(p2)
-                    if bernoulli():
-                        P.add(p1)
-                    else:
-                        P.add(p2)
-                    break
-            else:
-                P.add(p1)
-
-        low, high = np.array(self.system.bound).T
-        for p in P:
-            if p.rel == STL.LESS:
-                high[p.var_idx] = p.mu
-            else:
-                low[p.var_idx] = p.mu
-        return t_rand, tuple([uniform(l, h) for l, h in it.izip(low, high)])
-
-    def near(self, x_rand, t_rand):
-        '''Returns all states from the tree TS that are within the RRT* radius
-        from the random sample, and within the time bound.
-        ''' #TODO: add back shrinking radius
-#         # Compute the ball radius
-#         n = len(self.ts.nodes)
-        # compute RRT* radius
-        r = self.gamma#*np.power(np.log(n + 1.0)/(n + 1.0), self.system.dim)
-#        print 'near radius:', r
-        X_near = [x for x in self.ts.nodes if self.system.dist(x_rand, x) <= r]
-
-        N_near = []
-        for x in X_near:
-            for phi, data in iter(self.ts.nodes[x].items()):
-                if data['time'] + self.min_step <= t_rand \
-                                                    <= data['time'] + self.T_H:
-                    N_near.append((x, phi))
-        return N_near
-
-    def nearest(self, x_rand, t_rand):
-        '''Returns the nearest (w.r.t. space and time) state in the RRT tree.'''
-        x_pa = min(self.ts.nodes, key=lambda x: self.system.dist(x_rand, x))
-        # TODO [PY2]>>>
-        # times = [d['time'] for d in self.ts.nodes[x_pa].itervalues()]
-        # TODO [PY2]<<< 
-        # TODO [PY3]>>>
-        times = [d['time'] for d in iter(self.ts.nodes[x_pa].values())]
-        # TODO [PY3]<<< 
-        
-        t_pa_min = min(times)
-        if t_pa_min + self.min_step > self.specification.bound:
-            return None, None, None
-        times = [t for t in times if t + self.min_step < t_rand <= t + self.T_H]
-
-        if t_pa_min + self.min_step < t_rand:
-            if times:
-                t_pa_min = min(times)
-            else:
-                t_rand = min(t_pa_min + self.T_H, self.specification.bound)
-            return x_pa, t_pa_min, t_rand
-
-        t_rand = min(t_pa_min + uniform(self.min_step, self.T_H),
-                     self.specification.bound)
-        if t_rand <= t_pa_min + self.min_step:
-            return None, None, None
-        return x_pa, t_pa_min, t_rand
-
-    def connect(self, x_rand, t_rand, N_near):
-        '''Attempts to connect a x_rand to the best parent in N_near at time
-        t_rand.
-        '''
-        low, high = np.array(self.system.bound).T
-        #The computation of J_chi 
-        lam = uniform(0, 1)
-        v_pa = None
-        J_star = DBL_MAX
-        x_star = None
-        xx_rand = np.array(x_rand)
-        lx_rand = (1 - lam) * xx_rand
-        traj_star = None
-        u_star = None
-        for xp, phip in N_near:
-            assert np.all(low <= xp) and np.all(xp <= high)
-            x1 = np.array(xp) + np.array(self.ts.nodes[xp][phip]['chi']) * self.T_H
-            xs = lam * x1 + lx_rand 
-            Js = np.sum(np.square(xx_rand - x1))
-            ts = self.ts.nodes[xp][phip]['time']
-            u, traj_steer, x_new = self.system.steer(xp, xs, t_rand-ts, ts) # self.system.steer(initial state, final state, starting time, ending time)
-            if traj_steer:
-                if np.all(low <= x_new) and np.all(x_new <= high):
-                    if Js < J_star:
-                        J_star = Js
-                        x_star = x_new
-                        v_pa = (xp, phip)
-                        traj_star = traj_steer
-                        u_star = u
-        if x_star is None:
-            return None, False
-        # attempt to add to the transition system
-        return self.update(v_pa, (x_star, None), t_rand, traj_star, u_star)
-
-    def rewire(self, v_new, t_new):
-        '''Attempts to rewire the RRT* tree using the new vertex, i.e., change
-        the parents of nearby nodes using v_new.
-        '''
-        x_new, phi_new = v_new
-        if x_new not in self.ts.nodes:
-            return
-        if phi_new not in self.ts.nodes[x_new]:
-            return
-
-        v_pa = self.ts.nodes[x_new][phi_new]['parent']
-#         print 'rewire:', v_new, t_new
-
-        N_near = self.near(x_new, t_new)
-        for v in N_near:
-            if v != v_new and v!= v_pa:
-                x, phi_x = v
-                t = self.ts.nodes[x][phi_x]['time']
-                d = t_new - t
-#                 print 'rewire-near:', v, t, d
-                u, traj_steer, xp = self.system.steer(x_new, x, d, t)
-                if traj_steer  and all(np.isclose(x, xp, rtol=0)): # exact connection
-                    self.update(v_new, v, t, traj_steer, u,rewire_flg=True)
-
-    def update(self, v_pa, v_ch, t, traj, u,rewire_flg = False):
-        '''Updates the child vertex based on the potential parent vertex.
-        Note: If a vertex is added to the transition system, then
-        self.ts.max_time is updated.
-        '''
-        assert u is not None
-        assert traj is not None
-        assert t is not None
-
-        x_pa, phi_pa = v_pa
-        x_ch, phi_ch = v_ch
-
-        pa_traj = self.ts.nodes[x_pa][phi_pa]['trajectory']
-        ch_traj = [pa_traj[0] + traj[0][1:], pa_traj[1] + traj[1][1:]]
-        
-        ext_traj = []
-        J_ext = 1000000
-        # u, traj_steer, x_new = self.system.steer(xp, xs, t_rand-ts, ts)
-
-
-
-#         print 'parent traj', pa_traj
-#         print 'child traj', ch_traj#         print u
-#         print traj[-1]
-
-
-        rosi_ch = phi_pa.rosi(ch_traj, t)
-        ap_ch, bp_ch = rosi_ch
-
-        updated = False
-        update_branches = False
-        if phi_ch is None:
-            if bp_ch > 0:
-                if x_ch not in self.ts.nodes:
-                    self.ts.add_node(x_ch, dict())
-                phi_ch = phi_pa.simplify(ch_traj, t)
-                v_ch = x_ch, phi_ch
-                updated = True
-        else:
-            rosi_ch_prev = self.ts.nodes[x_ch][phi_ch]['rosi']
-            a_ch, _ = rosi_ch_prev
-            if bp_ch > 0 and ap_ch > a_ch and phi_pa.compatible(phi_ch):
-                updated = True
-                update_branches = True
-
-        if updated: # update child information
-            assert phi_ch is not None
-            if phi_ch in self.ts.nodes[x_ch]: # rewiring
-                ch_children = self.ts.nodes[x_ch][phi_ch]['children']
-                # remove child vertex from its previous parent children list
-                x_prev_pa, phi_prev_pa = self.ts.nodes[x_ch][phi_ch]['parent']
-                self.ts.nodes[x_prev_pa][phi_prev_pa]['children'].remove(v_ch)
-            else: # new node
-                ch_children = set()
-            # Given that the node is feasible to add to TS, we extend it for 
-            # further exploration to generate the optimal sampling distribution: 
-            # if rewire_flg: 
-            #     ext_traj = self.ts.nodes[x_ch][phi_ch]['ext_traj']
-            #     J_ext = self.ts.nodes[x_ch][phi_ch]['J_ext']
-            # else: 
-            #     t_du = 3
-            #     t_c = t 
-            #     u, ext_traj, x_new = self.system.steer_rand(x_ch, t_du, t_c) # this function assign random action given the time horizon t_h
-            #     low, high = np.array(self.system.bound).T
-            #     #The computation of J_chi 
-            #     lam = uniform(0, 1)
-            #     xx_new = np.array(x_new)
-            #     lx_rand = (1 - lam) * xx_new
-            #     assert np.all(low <= x_ch) and np.all(x_ch <= high)
-            #     x1 = np.array(x_ch) + np.array(self.ts.nodes[x_ch][phi_ch]['chi']) * self.T_H
-            #     J_ext = np.sum(np.square(xx_new - x1))
-                
-
-            self.ts.nodes[x_ch][phi_ch] = {
-#                  'costFromParent' : 0,
-#                  'costFromRoot' : 0,
-                 'parent': v_pa,
-                 'children': ch_children,
-                 'trajectory': ch_traj,
-                 'time': t,
-                 'rosi': rosi_ch,
-                 'control': u,#         print u
-#         print traj[-1]
-                 'ext_traj': ext_traj, 
-                 'J_ext': J_ext, 
-                 'chi': self.chi(traj, phi_ch, t)
-                }
-            # add child vertex to the new parent's children list
-            self.ts.nodes[x_pa][phi_pa]['children'].add(v_ch)
-            # update maxtime
-            self.ts.maxtime = min(max(self.ts.maxtime, t),
-                                  1.05 * self.specification.bound)
-            # update best vertex
-            self.check_update_best_vertex(v_ch)
-            if update_branches:
-                # update the cost of all vertices in the rewired branch
-                self.update_branch_costs(v_ch)
-#         # tree invariant
-#         assert self.ts.g.number_of_nodes() == (self.ts.g.number_of_edges() + 1)
-#         assert all([self.ts.g.in_degree(n)==1 for n in self.ts.g if n != self.ts.init])
-        return v_ch, updated
-
-    def check_update_best_vertex(self, v):
-        '''Updates the best state that has a singleton RoSI.'''
-        x, phi = v
-#         print 'check best:', v
-        a, b = self.ts.nodes[x][phi]['rosi']
-        if np.isclose(a, b, rtol=0):
-            costCurr = max(a, b)
-            if self.lowerBoundVertex is None or costCurr > self.lowerBoundCost:
-                self.lowerBoundVertex = v
-                self.lowerBoundCost = costCurr
-
-    def update_branch_costs(self, v):
-        '''Updates the RoSI of vetices on the branches rooted at v.'''
-        x, phi = v
-        queue = deque([(v, self.ts.nodes[x][phi]['children'])])
-        while queue:
-            _, children = queue.popleft()
-            # Update the cost for each children
-            for child in children:
-                x_ch, phi_ch = child
-                traj = self.ts.nodes[x_ch][phi_ch]['trajectory']
-                t = self.ts.nodes[x_ch][phi_ch]['time']
-                rosi_ch = phi_ch.rosi(traj, t)
-                self.ts.nodes[x_ch][phi_ch]['rosi'] = rosi_ch
-
-                ch_children = self.ts.nodes[x_ch][phi_ch]['children']
-                if ch_children:
-                    queue.append((child, ch_children))
-                if rosi_ch[1] < 0:
-                    self.ts.nodes[x_ch].pop(phi_ch)
-                    #FIXME: optimize prune
-
-    def exists_solution(self):
-        '''Checks if there exists a solution.'''
-        return self.lowerBoundVertex is not None
-
-    def get_path_from_root(self, v):
-        '''Returns the path from root to v.'''
-        print('vertex:', v)
-        traj = deque([])
-        while v:
-            traj.appendleft(v)
-            x, phi = v
-            v = self.ts.nodes[x][phi]['parent']
-        return traj
+    
 
     # >>>>>>>>>>>>>>>>TWTL-based primitives functions <<<<<<<<<<<<<<<<<
     # >>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
