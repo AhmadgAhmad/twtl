@@ -50,9 +50,9 @@ Vehicles: {vehicles}
                    vehicles=self.vehicles)
     
     @classmethod
-    def from_file(cls, filename):
+    def from_file(cls, filename = '/home/ahmad/Desktop/twtl/twtl/rhotwtl_rrt/case1_di.yaml'):
         # Ahmad's Ubunto location: 
-        filename = '/home/ahmad/Desktop/twtl/twtl/rhotwtl_rrt/case1_di.yaml'
+        # filename = '/home/ahmad/Desktop/twtl/twtl/rhotwtl_rrt/case1_di.yaml'
         
         # Ahmad's windows location: 
         # filename = 'C:/Users/ahmad/Documents/Graduate_study/PhD_work/IS_STL_plnng/imprtnc_smplg_stl_plng/rho-rrt/cases/case1_di.yaml'
