@@ -41,4 +41,4 @@ $$$$$$$$$$$$$$ Where Should I resume:
 - Return the alphabet of ast (the set of APs of the formula) twtl.py Line 267 
 - For the sampling, be more efficient in sampling. The current approach samples s then search 
 for the nearest amongst the product states with the same s component, sample   
-
+- Update the grammar to incorporate complicated APs, i.e., APs with conjunction of linear predicates. For now we consider APs with simple predicates
