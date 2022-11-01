@@ -161,7 +161,7 @@ class TS(object):
     def update(self):
         pass 
     
-    def L(self):
+    def L(self,alphabet):
         '''
         This function labels the observations based off the APs
         '''
@@ -236,170 +236,7 @@ class Planner(object):
         self.min_step = 0.01
         assert self.min_step < self.T_H
 
-    
 
-    ##############
-    ##############
-    def KLdiv(self,grid_probs):
-        """
-        Compute the KL divergence
-        :param grid_probs: The probabilities of the point in the grid of the current sampling distribution
-        :return: the KL divergence
-        """
-        if self.kde_enabled:#self.params.kde_enabled:
-            pre_grid_probs = self.KDE_pre_gridProbs
-        else:
-            pre_grid_probs = self.pre_gridProbs
-        return -sum([pre_grid_probs[i]*np.log2(grid_probs[i]/pre_grid_probs[i]) for i in range(len(pre_grid_probs))])
-
-    def UpSampling_andSample(self, extensions_set,length = 1,width = 4, rho = 0.1, rce = .5 ,md=8, k=4, n=2):
-            u_rand = uniform(0, 1)
-            if (len(extensions_set) > 30):# and len(extensions_set)>20: #Exploration w.p. 0.5 and exploitation (sampling adaptation) w.p. 0.5
-                N_qSamples = 200 
-                h = 10.0/md
-
-                #Optimality flags, and distribution fitting options
-                if (self.kde_enabled and not self.kdeOpt_flag):
-                    t_s, x_s = self.CE_Sample(extensions_set,h,N_qSamples)
-                elif self.kde_enabled and self.kdeOpt_flag: #The optimal kernel density estimate has been reached, focus the samples just to be for the "optimal" distribution
-                    t_s, x_s = self.ufrm_sample()
-                if t_s is None and x_s is None: #CE_Sample() will return None if not enough samples of trajectoies that reach the goal are avialbe
-                    t_s, x_s = self.ufrm_sample()
-            else:
-                t_s, x_s = self.ufrm_sample()
-            return t_s, x_s
-
-    def CE_Sample(self,extensions_set,h,N_qSamples):   
-        if len(extensions_set)>=(self.adapIter*50): #The acceptable number of trajectories to adapat upon
-            frakX = []
-            #Find the elite trajectoies then discretize them and use their samples as the elite samples:
-            extensions_set_rhoList = list(np.asarray(extensions_set)[:,1]) 
-            d_factor = 1
-            q = 0.25/d_factor # TODO [elite] the %70 samples
-            rho_rhoth_q = np.quantile(list(np.multiply(extensions_set_rhoList,-1.0)), q=q)
-            self.qt_rhos.append(-rho_rhoth_q)
-            elite_extensions_set = [traj for traj in extensions_set if -traj[1] <= rho_rhoth_q] # TODO [elite] iterate upon pairs, or, as opposed to define pairs, I might as well define the  
-            elite_extensions_set_rhos = [traj[1] for traj in extensions_set if -traj[1] <= rho_rhoth_q]
-            self.best_rhos.append(max(elite_extensions_set_rhos))
-            if len(elite_extensions_set) == 0:
-                elite_extensions_set = extensions_set
-
-            #XXXXXXX
-            for elite_traj in elite_extensions_set:
-                elite_traj_rho = elite_traj[1]
-                #Concatnating the trajectory:
-                traj = np.asarray(elite_traj[0][0])
-                t_traj = np.asarray(elite_traj[0][1])
-                # Backtrack the path from vg to v0; extract the sample at certain increments of the time:
-                tStep_init1 = int(h/self.system.dt)
-                tStep_init = 2
-                tStep = 10
-                tStep_temp = tStep_init1+3
-                while tStep < len(traj[:,1]):
-                    pi_qt_tpl = np.append(traj[tStep,:],t_traj[tStep])# The time of the elite system state (TODO [traj_smplng] When sampling form the space of trajectories, the temporal coherence is within implied by the trajectory itself.#TODO [q_ahmad] how the space of trajectories would look like. )
-                    elite_cddtSample = [pi_qt_tpl,elite_traj_rho] #This tuple contains the actual sample pi_q_tStep and the CostToCome to the goal of the corresponding trajectory
-                    frakX.append(elite_cddtSample)  # TODO [smplng] Don't ignore the previous iterations elite distributions. See iCEM for their approach in carrying some previous elite samples. Employ the idea of ergodic exploration as opposed to ignore all the previous samples 
-                    tStep = tStep + tStep_temp
-            if self.adapIter == 1:
-                frakX.extend(self.initEliteSamples)
-            # XXXXXXX
-            self.len_frakX = len(frakX)
-            if len(frakX) == 0:
-                ok = 1
-            t_s,x_s = self.CE_KDE_Sampling(frakX) # TODO [smplng] Here, do the normalizing flow sampling 
-        else:
-                t_s = None
-                x_s = None
-        return t_s,x_s
-
-    #Density estimate, kernel density or GMM:
-    def CE_KDE_Sampling(self,frakX):
-        """
-        Fit the elite samples to Kernel density estimate (KDE) or a GMM to generate from; and generate an (x,y) sample from the estimated
-        distribution. Checks if the CE between the previous density estimate and the current one below some threshold. In the case
-        of KDE the expectation similarity measure could be used instead on the CE.
-
-        NOTE to Ahmad:
-        You're using the CE with the KDE because you have the logistic probes of the samples and you use them; however, for
-        Kernel based distributions the expectation similarity could be used as well. One might reformulate the CE framework
-        in terms of nonparametric distributions.
-
-        :param frakX: The elite set of samples with the corresponding trajectory cost.
-        :return:
-        """
-        frakXarr = np.array(frakX)
-        N_samples = len(frakX)
-        costs_arr = frakXarr[:,1]
-        elite_samples_arr = np.asarray(list(frakXarr[:,0]))
-        elite_costs = costs_arr
-
-        #random point from the estimated distribution:
-        if self.kde_enabled:#self.params.kde_enabled:
-            kde = KernelDensity(kernel='gaussian', bandwidth=.4) # TODO [smplng] choose the bandwidth differently  
-            kde.fit(elite_samples_arr)
-            self.adapIter += 1
-            xySample = kde.sample()
-
-        if self.kde_enabled:#self.params.kde_enabled:
-            x_gridv = np.linspace(-1, 5, 50)
-            y_gridv = np.linspace(-1, 4, 50)
-            t_gridv = np.linspace(0,12,50) # TODO [smplng] Choose the time horizon of the STL specs 
-            Xxgrid, Xygrid, Xtgrid = np.meshgrid(x_gridv, y_gridv, t_gridv)
-            XYTgrid_mtx = np.array([Xxgrid.ravel(), Xygrid.ravel(),Xtgrid.ravel()]).T
-            #Get the probabilities
-            grid_probs = np.exp(kde.score_samples(XYTgrid_mtx))
-            elite_smpls_probs = np.exp(kde.score_samples(elite_samples_arr))
-            # Find the KL divergence the current samples and the previous ones:
-            if self.adapIter > 2:
-                KL_div = self.KLdiv(grid_probs)
-                if KL_div < .1:
-                    # self.kdeOpt_flag = True
-                    pass
-                    
-                self.KDE_fitSamples = kde #This kde object will be used to sample form whn the optimal sampling distribution has been reached
-
-            self.KDE_pre_gridProbs = grid_probs
-
-            #Plot the distribution
-            if self.plot_kde_est:
-                # self.initialize_graphPlot()
-                # CS = plt.contour(Xxgrid, Xygrid,Xtgrid, grid_probs.reshape(Xxgrid.shape))  # , norm=LogNorm(vmin=4.18, vmax=267.1))
-                # plt.colorbar(CS, shrink=0.8, extend='both')
-                
-                # Visualize the isosurfaces of the 3d multivariate distribution: 
-                #---------------------------------------------------------------
-                fig = go.Figure(data=go.Isosurface(
-                    x = Xxgrid.flatten(),
-                    y = Xygrid.flatten(),
-                    z = Xtgrid.flatten(),
-                    value = grid_probs,
-                    opacity=0.6,
-                    surface_count=7, # number of isosurfaces, 2 by default: only min and max
-                    colorbar_nticks=7, # colorbar ticks correspond to isosurface values
-                    caps=dict(x_show=False, y_show=False)
-                    ))
-                
-                fig.show()
-
-                # Visualize the elite samples (scatter points)
-                #------------------------------------------------------
-                fig, ax = plt.subplots(subplot_kw=dict(projection='3d'))
-                ax.scatter(elite_samples_arr[:, 0], elite_samples_arr[:, 1],elite_samples_arr[:, 2],c=elite_smpls_probs)
-                ax.set_xlabel('x_pos')
-                ax.set_ylabel('y_pos')
-                ax.set_zlabel('time')
-                plt.show()
-                
-                # Visualize the contours of the multivariate distribution at a time instance: 
-                # ---------------------------------------------------------------------------- 
-                CS = plt.contour(Xxgrid[:,:,49], Xygrid[:,:,49], grid_probs.reshape(Xxgrid.shape)[:,:,49])  # , norm=LogNorm(vmin=4.18, vmax=267.1))
-                plt.colorbar(CS, shrink=0.8, extend='both')
-                
-                a = 1
-
-        return xySample[0][2],(xySample[0][0],xySample[0][1])
-    ##############
-    ##############
 
     #$#$#$#$#$#$#$#$#$# the main planning loop: 
     def solve(self):
@@ -412,115 +249,20 @@ class Planner(object):
         x_exp, s_rand = self.PA.sample(x_rand) # Sample a product automaton state
         traj, t_traj = self.system.steer(x0 = x_exp, xd= x_rand, d_steer = d_steer, ti = 0)
         x_new = traj[-1,:]
-        a = 2
+        # finding the near set: 
+        Vnear = self.near(s = s_rand, x_new = x_new, d_steer = d_steer)
+        x_max = x_exp
+        x_max = self.bestParent(x_max,Vnear)
+        # Might not need steering here 
+        a = 1 
+
+
+
+
         #=================================================================
         #=================================================================
         #=================================================================
-        runtimes = []
-        rhos = [] 
-        extensions_set = []
-        # =========== The planning loop (Line 3 - 18 Algorithm 1) ================
-        for k in range(10000):#range(self.steps):
-            current_k = k
-            if not k%100:
-                logging.info('step: %d %d', k, len(self.ts.nodes))
-            t0 = time.time()
 
-#             print '----------------------------------'
-
-            t_rand, x_rand = self.ufrm_sample()
-            # _,_ =self.UpSampling_andSample(extensions_set=extensions_set)
-            
-            
-#             print 'sample:', t_rand, x_rand
-
-            N_near = self.near(x_rand, t_rand)
-            if not N_near:
-                x_pa, t_pa, t_rand = self.nearest(x_rand, t_rand)
-                if x_pa is None:
-                    continue
-                assert t_pa + self.min_step <= t_rand
-                _, _, x_rand = self.system.steer(x_pa, x_rand, t_rand-t_pa, t_pa)
-#                 assert self.system.dist(x_pa, x_rand) <= self.gamma
-                if self.system.dist(x_pa, x_rand) > self.gamma:
-                    print('nearest-parent:', t_pa, x_pa)
-                    print('nearest-steer:', t_rand, x_rand)
-                    print('dist:', self.system.dist(x_pa, x_rand))
-                    assert False, (self.system.dist(x_pa, x_rand), self.gamma,
-                                   self.system.dist(x_pa, x_rand) <= self.gamma)
-                N_near = self.near(x_rand, t_rand)
-            if not N_near:
-                print(x_rand)
-                print(t_rand)
-
-                X_near = [x for x in self.ts.nodes
-                                if self.system.dist(x_rand, x) <= self.gamma]
-                for xx in X_near:
-                    print(xx)
-                    for phi, d in self.ts.nodes[xx].iteritmes():
-                        print(phi, d['time'])
-                    print
-
-            assert N_near
-
-#             print t_rand, x_rand, N_near
-
-            # drive system towards random state and increasing robustness
-            # TODO [ahmad] Here the things are 
-            v_new, connected = self.connect(x_rand, t_rand, N_near)
-
-#             print v_new
-#             print connected
-            # connected = False
-            if connected:
-                self.rewire(v_new, t_rand)
-                # -------------- Extend a vertex T_H ---------------------------
-                # x0 = v_new[0]
-                # ti = self.ts.nodes[v_new[0]][v_new[1]]['time']
-                # Td = 10 - (ti)
-                # n_s = 20
-                # for isple in range(1):
-                #     u_seq = self.system.sample_us(Td=Td,n_s=n_s)
-                #     u, traj,xf = self.system.steer_undrU(x0 = x0,ti = ti,u_seq=u_seq)
-                #     self.ts.nodes[v_new[0]][v_new[1]]['ext_traj'] = [u, traj,xf]
-                #     v_traj =  self.ts.nodes[v_new[0]][v_new[1]]['trajectory']
-                #     t_traj = v_traj[1] + traj[1] # Appending the time trajectory
-                #     s_traj = v_traj[0] + traj[0] # Appending the state trajectory 
-                #     traj = [s_traj,t_traj]
-                #     rho = self.specification.robustness(traj)
-                #     rhos.append(rho)
-                #     traj_rho_pr = [traj,rho]
-                #     extensions_set.append(traj_rho_pr)
-                # self.UpSampling_andSample(extensions_set=extensions_set) # TODO [smplng] remove from here 
-                # TODO [wrat] Compute STL robustness of each extension:
-                 
-
-                # --------------------------------------------------------------
-
-            # $$$$$$$ TODO [ahmad] Inspect the tree 
-            if len(self.ts.nodes) % 100 == 0: #plot the tree every 10 iterations: 
-                debug_show_ts(self, self.mission.system['type'])
-                a = 1
-            nodes_inspe = self.ts.nodes
-            # $$$$$$$ TODO [ahmad] Extend the newly added vertex to a sample with an ending time of 
-            #                      the corresponding mile-stone time horizon and in the DIS
-
-            runtimes.append(time.time()-t0)
-#            print runtimes[-1]
-#            print
-        #========== End of the planning loop ===================================
-
-        with open('runtimes.txt', 'a') as fout:
-            print>>fout, runtimes
-            print>>fout
-
-        # save solution
-        if self.exists_solution():
-            self.ts.best_path = self.get_path_from_root(self.lowerBoundVertex)
-            self.ts.solution_controls = [self.ts.nodes[x][phi]['control']
-                                                for x, phi in self.ts.best_path]
-            return True
-        return False
 
     def initialize(self, twtl_formula = None, x0 = None, s0 = None):
      
@@ -559,25 +301,8 @@ class Planner(object):
 
     # >>>>>>>>>>>>>>>>TWTL-based primitives functions <<<<<<<<<<<<<<<<<
     # >>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    def sample_x_s(self):
-        pass
 
-    def nearest(self,x_smpl,s_smpl):
-        """
-        :input x_smpl: an (x,y) sample in X_{free}
-        :input  s_smpl: a sampled automaton state that has a corresponding PA states, 
-                (i.e. there are x's in V in that spesifications layer (an automaton state))
-        """
-        # Extract the TS states of the automaton state: 
-        xyVrtcs = s_smpl.TX_xs # list
-        tempTree = KDTree(xyVrtcs, leaf_size=2)
-
-        nn_idx = int(tempTree.query(x_smpl.reshape([1, 2]), k=1, return_distance=False))
-        x_exp = xyVrtcs[nn_idx]
-        return x_exp # What I'm interested hear is just about the value in X_free, we'll keep track of the TS when we extended 
-        
-
-    def near(self, b_radi, x_new = None, s_nnEty = None):
+    def near(self, s, x_new, d_steer):
         """
         Find all the vertices within a  ball with radius=b_raduis of the Vertex. Uses KDball-trees as well.
         :param b_raduis: a ball in which we search for the neighboring vertices
@@ -585,18 +310,16 @@ class Planner(object):
         :input s_nnEty: a twtlAutomaton state that has a corresponding PA state/s
         :return: A list of the vertexes with the specified ball.
         """
-        #TODO [search chlng]: for near we need to retrive the actual vertices, because at each vertix I'll have the computation of the runtime monitring there. 
-        # The tree of the NNs within the ball
-        tempTree = BallTree(s_nnEty.TX_xs) # Here we are concerned about the vertices around at the same specifications layer (the automaton state
-        # The index of the NN vertex (it is different than indexID of the vertex) TODO [sanity check] make sure that you return the correct NN
-        nn_currIndex, _ = tempTree.query_radius(x_new.reshape([1, 2]), r=b_radi, return_distance=True,sort_results=True)  # TODO (debug) prevent the vertex to be neighbor to itself
-        nn_currIndex = nn_currIndex[0].astype(int)
-        # Return the indexID of the Nearest Vertex to xy_sample:
-        nn_currIndex = nn_currIndex[1:]  # Exclude the node of being its own neighbor
-        indsID_List = s_nnEty.TX_ids
-        nn_TS_ids = indsID_List[nn_currIndex] # These are indices in the original TS  
-        nn_Vs = [v for id,v in zip(nn_TS_ids,self.TS.V) if id == self.TS.V.id] # TODO [code opt] try to avoid searching in here THIS IS WRONG
-        return nn_Vs
+        assert x_new is not None
+        Sp = self.PA.Sp 
+        Vs = [xts['x'] for xts in Sp if xts['s']==s] # with s being the specs automaton state:  
+        # The tree of the NNs (we cannot build it outside)
+        tempTree = BallTree(Vs)
+        # The index of the NN vertex (it is different than indexID of the vertex)
+        nn_currIndex, nn_currDist = tempTree.query_radius(x_new.reshape([1, 2]), r=d_steer, return_distance=True,sort_results=True) 
+        V_near = [Vs[i] for i in nn_currIndex[0]]
+        return V_near
+
 
     def V_next(self,s,v_new):
         '''
@@ -615,6 +338,23 @@ class Planner(object):
         return self.near(b_radi=self.d_steer,x_new=v_new.s,s_nnEty=s)
 
 
+    def bestParent(self,s_rand,x_max,x_new,Vnear):
+        
+        for x in Vnear:
+            trajp, t_traj = self.system.steer(x0 = x, xd = x_new, exct_flg = True)
+            xp = trajp[-1,:]   
+            if np.linalg.norm(xp-x_new)<0.05: # TODO [crucial] compute the robustness or what ever 
+                x_max = x
+                Lx_max = self.TS.L(x_max) # This function should check to what Region/Property/Proposition the state x_max belongs
+                s_max = self.DFAphi.next(s_rand,Lx_max) # Basically this function will check the next specification automaton state 
+                p_new = {'s':s_max,'x':x_max}
+                self.PA.Sp.append(p_new)
+                # Do we need to update the transition system per say? 
+
+
+                
+
+    
     def find_vmax_rhp(self,x_max,v_new,V_near,s_rand):
         '''
         This is basically choosing the best parent
