@@ -551,6 +551,7 @@ def main():
     s0 = 0
     twtl_formula = 'H^3 A . H^5 B . [H^5 A]^[10,15]'
     twtl_formula = 'H^3 A'
+    twtl_formulaPred =  'H^3 (x1>1 && x1<2 && x2>1 && x2<3) . H^5 (x1>2 && x1<4 && x2>1 && x2<3) . [H^5 (x1>1 && x1<2 && x2>1 && x2<3)]^[10,15]'
     
     planner.initialize(twtl_formula,x0 = x0, s0 = s0)
     # Solve the planning problem (Line 6 - 30):   
