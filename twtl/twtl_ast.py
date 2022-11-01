@@ -59,7 +59,7 @@ class TWTLFormula(object):
     def __init__(self, operation, **kwargs):
         '''Constructor'''
         self.op = operation
-
+        self.props = []
         if self.op in (Operation.AND, Operation.OR, Operation.CONCAT):
             self.left = kwargs['left']
             self.right = kwargs['right']
@@ -107,7 +107,7 @@ class TWTLFormula(object):
             return [low_bound, upper_bound]
         elif self.op == Operation.WITHIN:
             child_bounds = self.child.bounds()
-            assert child_bound[0] <= self.high - self.low, \
+            assert child_bounds[0] <= self.high - self.low, \
                 'Child formula is unfeasible within time window'
             return [self.low + child_bounds[0], self.high]
 
@@ -115,15 +115,23 @@ class TWTLFormula(object):
         '''Computes the set of predicates/booleanExpr that are involved in the TWTL formula'''
         if self.op == Operation.HOLD:
             if self.proposition is None and self.predicate is not None:
+                # TODO [Fix] when
                 return self.predicate.getText()
             else: 
-                return self.proposition 
+                props = self.props
+                if self.proposition not in self.props:
+                    props.append(self.proposition)
+                    self.props = props
+                    return
+                else:
+                    return        
         elif self.op in (Operation.AND, Operation.OR, Operation.CONCAT):
-            left_pr = self.left.propositions()
-            right_pr = self.right.propositions()
-            return left_pr, right_pr
+            self.left.propositions()
+            self.right.propositions()
+            return
         elif self.op in (Operation.NOT, Operation.WITHIN):
-            return self.child.propositions()
+            self.child.propositions()
+            return 
         
         
         
