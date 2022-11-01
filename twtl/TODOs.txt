@@ -33,3 +33,12 @@ $$$$$$$$$$$$$$ Where Should I resume:
 - Debug the robustness computation 
 - Debug the translator using ANTLR4 
 - Make sure the sampling based planning algorithm in fact works without the robustness and the TWTL stuff
+
+
+#####################################################################
+### Problem to be fixed and currently compensated with hardcodes: ###
+#####################################################################
+- Return the alphabet of ast (the set of APs of the formula) twtl.py Line 267 
+- For the sampling, be more efficient in sampling. The current approach samples s then search 
+for the nearest amongst the product states with the same s component, sample   
+
