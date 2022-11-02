@@ -115,8 +115,9 @@ class TWTLFormula(object):
         '''Computes the set of predicates/booleanExpr that are involved in the TWTL formula'''
         if self.op == Operation.HOLD:
             if self.proposition is None and self.predicate is not None:
-                # TODO [Fix] when
-                return self.predicate.getText()
+                # TODO [Fix] when 
+                predFormctx = self
+                return predFormctx
             else: 
                 props = self.props
                 if self.proposition not in self.props:
@@ -126,12 +127,12 @@ class TWTLFormula(object):
                 else:
                     return        
         elif self.op in (Operation.AND, Operation.OR, Operation.CONCAT):
-            self.left.propositions()
-            self.right.propositions()
-            return
+            left_p = self.left.propositions()
+            right_p = self.right.propositions()
+            return left_p, right_p
         elif self.op in (Operation.NOT, Operation.WITHIN):
-            self.child.propositions()
-            return 
+            child_p = self.child.propositions()
+            return child_p
         
         
         
