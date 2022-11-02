@@ -43,7 +43,7 @@ from twtlLexer import twtlLexer
 from twtlParser import twtlParser
 from twtl_ast import TWTLAbstractSyntaxTreeExtractor
 from twtl_ast import Operation as Op
-
+from twtl.twtl import Trace, TraceBatch, Trace_np
 
 
 bernoulli = lambda p=0.5: 0 if uniform() <= p else 1
@@ -151,21 +151,46 @@ class PAstate(object):
         pass
 
 class TS(object):
-    def __init__(self,x0):
+    def __init__(self,x0,system = None):
         self.V = None           # the set of vertices 
         self.E = None           # the set of edges, aka transitons 
-        self.dynamics = None    # the actual underlying dynamics that TS is an abstraction for. 
+        self.dynamics = system    # the actual underlying dynamics that TS is an abstraction for. 
         self.x0  = x0           # the initial state 
         self.APs = []           # The set of APs
-        
+        self.ASTp = None
+        self.ASTap = None
     def update(self):
         pass 
-    
-    def L(self,alphabet):
+    def isIn(self,AlphbtAPs,AlphbtPrds,x):
+        a = 1 
+        Ls = []
+        for ap, pred in zip(AlphbtAPs,AlphbtPrds):
+            L = self.inPrdRgn(pred=pred,x=x)
+            Ls.append(L)
+    def L(self,AlphbtAPs,AlphbtPrds,x):
         '''
         This function labels the observations based off the APs
         '''
-        pass
+        pass 
+    def inPrdRgn(self,pred,x):
+        
+        x0 = np.array([0,0])
+        xf = np.array([4,10])
+        nsteps = int(abs(x0[0]-xf[0])/(self.dt*1.0))        
+        traj = np.linspace(x0,xf,nsteps)
+        t_traj = np.linspace(ti,nsteps*self.dt,nsteps)
+        Trace_np(variables=['x1','x2'],timePoints=t_traj,data= traj)
+        
+        
+        if pred.relation in ('>=','>'):#(Op.GE, Op.GT):
+            rs =  [value - pred.threshold for value in traj[times[0]-1:times[-1]]]
+        elif pred.relation in ('<=','<'):#(Op.LE, Op.LT):
+            rs =  [pred.threshold - value for value in traj[times[0]-1:times[-1]]]
+        elif pred.relation == Op.EQ:
+            rs = [-np.abs(value - pred.threshold) for value in traj[times[0]-1:times[-1]]]
+        elif pred.relation == Op.NQ:
+            rs = [np.abs(value - pred.threshold) for value in traj[times[0]-1:times[-1]]]
+        
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
@@ -187,6 +212,9 @@ class Planner(object):
         # self.system = system # for now we assume point dummy robot (evolvethe dynamics using linspace) TODO [code cont]: Incoroprate different types of dynamics 
         self.specification = specs_ast  # as AST
         self.twtl_formula = twtl_formula
+        self.alphbtAPs = None
+        self.alphbtPrds = None
+
 
         self.x0 = 0
         self.s0 = 0
@@ -218,7 +246,8 @@ class Planner(object):
         self.plt_ext_flg = True
 
         # Inspection for the twtl specs: 
-        self.twtl_ast = None
+        self.astAPs = None
+        self.astPreds = None
         self.twtlDFA = None
         self.PA = None          # the product automaton
         self.TS = None
@@ -226,7 +255,7 @@ class Planner(object):
 
         # Planner params: 
         self.mission = None
-        self.system = None
+        # self.system = None
         self.seed  = 2000 
         self.steps = 1000
         self.gamma = 0.9
@@ -247,7 +276,7 @@ class Planner(object):
         bounds = self.mission.system['bound']
         x_rand = np.random.uniform([bounds[0][0],bounds[1][0]],[bounds[0][1],bounds[1][1]])
         x_exp, s_rand = self.PA.sample(x_rand) # Sample a product automaton state
-        traj, t_traj = self.system.steer(x0 = x_exp, xd= x_rand, d_steer = d_steer, ti = 0)
+        traj, t_traj = self.TS.dynamics.steer(x0 = x_exp, xd= x_rand, d_steer = d_steer, ti = 0)
         x_new = traj[-1,:]
         # finding the near set: 
         Vnear = self.near(s = s_rand, x_new = x_new, d_steer = d_steer)
@@ -264,17 +293,32 @@ class Planner(object):
         #=================================================================
 
 
-    def initialize(self, twtl_formula = None, x0 = None, s0 = None):
+    def initialize(self, twtl_formula = None, twtl_formulaPred = None, x0 = None, s0 = None):
      
-        # Translate the twtl formula into a DFA: 
         assert twtl_formula is not None
+        assert twtl_formulaPred is not None
+        #Create the AST of the predicated formula: 
+        lexerP = twtlLexer(InputStream(twtl_formulaPred))
+        tokensP = CommonTokenStream(lexer=lexerP)
+        parserP = twtlParser(tokensP)
+        phiP = parserP.formula()
+        twtl_astP =  TWTLAbstractSyntaxTreeExtractor().visit(phiP)
+        alphabetPrdsTemp  =  twtl_astP.propositions()
+        alphabetPrds = set(alphabetPrdsTemp[0]) # XXX this is problem dependant, it's hard- codded
+        # Translate the twtl formula into a DFA: 
+        
         lexer = twtlLexer(InputStream(twtl_formula))
         tokens = CommonTokenStream(lexer=lexer)
         parser = twtlParser(tokens)
         phi = parser.formula()
         twtl_ast =  TWTLAbstractSyntaxTreeExtractor().visit(phi)
-        DFAresult = translate(ast=twtl_ast,norm=True)
+        alphabetAPs = set(['A','B'])
+        DFAresult = translate(ast=twtl_ast,alphabet = alphabetAPs,norm=True)
         self.DFAphi = DFAresult[1] # The determenstic finite automaton of the twtl specifications  
+        self.astAPs  = twtl_ast
+        self.astPreds = twtl_astP
+        self.alphbtAPs = alphabetAPs
+        self.alphbtPrds = alphabetPrds
         # Instantiate the transition system (will be built incrementally); essentially the RRT* tree: 
         self.TS = TS(x0 = x0) 
          
@@ -294,8 +338,9 @@ class Planner(object):
         # load system model
         system = load_system(mission.system)
         self.mission = mission 
-        self.system = system
-
+        # self.system = system
+        self.TS.dynamics = system
+        self.TS.isIn(AlphbtAPs=list(alphabetAPs),AlphbtPrds=list(alphabetPrds),x=np.array([1.,2.]))
     
     
 
@@ -341,7 +386,7 @@ class Planner(object):
     def bestParent(self,s_rand,x_max,x_new,Vnear):
         
         for x in Vnear:
-            trajp, t_traj = self.system.steer(x0 = x, xd = x_new, exct_flg = True)
+            trajp, t_traj = self.TS.dynamics.steer(x0 = x, xd = x_new, exct_flg = True)
             xp = trajp[-1,:]   
             if np.linalg.norm(xp-x_new)<0.05: # TODO [crucial] compute the robustness or what ever 
                 x_max = x
@@ -399,6 +444,8 @@ class Planner(object):
             x_g = 1#compute a state in the direction of x_g and d_steer distaned 
         pass
     # Quantitative semantics of TWTL  
+
+    
     def computeCost(self):
         pass
     def robustness(self):
@@ -551,9 +598,9 @@ def main():
     s0 = 0
     twtl_formula = 'H^3 A . H^5 B . [H^5 A]^[10,15]'
     twtl_formula = 'H^3 A'
-    twtl_formulaPred =  'H^3 (x1>1 && x1<2 && x2>1 && x2<3) . H^5 (x1>2 && x1<4 && x2>1 && x2<3) . [H^5 (x1>1 && x1<2 && x2>1 && x2<3)]^[10,15]'
+    twtl_formulaPred =  'H^3 x1>1 . H^5 x1>2 . [H^5 x1>1]^[10,15]'
     
-    planner.initialize(twtl_formula,x0 = x0, s0 = s0)
+    planner.initialize(twtl_formula = twtl_formula, twtl_formulaPred = twtl_formulaPred ,x0 = x0, s0 = s0)
     # Solve the planning problem (Line 6 - 30):   
     planner.solve()
     #-------------
