@@ -229,7 +229,7 @@ def norm(formula):
     # compute TWTL bound
     return ast.bounds()
 
-def translate(ast, kind='both', norm=False, optimize=True):
+def translate(ast, kind='both', alphabet = set(['A','B']), norm=False, optimize=True):
     '''Converts a TWTL formula into an FSA. It can returns both a normal FSA or
     the automaton corresponding to the relaxed infinity version of the
     specification.
@@ -264,8 +264,8 @@ def translate(ast, kind='both', norm=False, optimize=True):
     # ast = TWTLAbstractSyntaxTreeExtractor().visit(t)
     
 
-    alphabet = ast.propositions() # More correctly in the current code the set of predicates 
-    alphabet = set(['A','B'])
+    # alphabet = ast.propositions() # More correctly in the current code the set of predicates 
+    # alphabet = set(['A','B'])
     # alphabet = set(['A'])
     
     result= [alphabet]
@@ -304,6 +304,8 @@ def translate(ast, kind='both', norm=False, optimize=True):
             logging.debug('[spec] No of edges: {}'.format(pdfa.g.number_of_edges()))
 
     return tuple(result)
+
+
 
 def robustness(formulaAST,traj,time_traj,t1=None,t2=None,trace_test = None):#t1=0,t2=None,shift = 0):
     '''
@@ -445,6 +447,33 @@ def robustness(formulaAST,traj,time_traj,t1=None,t2=None,trace_test = None):#t1=
     pass
 
 # The following two classes are to make traces cleaner: 
+class Trace_np(object):
+    '''Representation of a system trace.'''
+
+    def __init__(self, variables, timePoints, data, kind='nearest'):
+        '''Constructor'''
+        # self.timePoints = list(timePoints)
+        # self.data = np.array(data)
+        # for variable, var_data in zip(variables, data):
+        #     print(variable, var_data, timePoints)
+        self.data = {variable : interp1d(timePoints, var_data, kind=kind)
+                            for variable, var_data in zip(variables, data)}
+
+    def value(self, variable, t):
+        '''Returns value of the given signal component at time t.'''
+        return self.data[variable](t)
+
+    def values(self, variable, timepoints):
+        '''Returns value of the given signal component at desired timepoint.'''
+        return self.data[variable](np.asarray(timepoints))
+
+    def number_signals(self):
+        return 1
+
+    def __str__(self):
+        raise NotImplementedError
+
+
 class Trace(object):
     '''Representation of a system trace.'''
 
