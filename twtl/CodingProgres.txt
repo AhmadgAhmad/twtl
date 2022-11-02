@@ -14,8 +14,7 @@ List of attributes:
 
 
 where I'm now: 
-- Translated the twtl formula into a DFA: 
-    Inspect the initial state of the automaton after translation 
+
 
 initialize the environment:
     - extract from yaml file 
