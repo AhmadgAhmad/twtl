@@ -49,7 +49,7 @@ class ptRobot(object):
         nsteps = int(abs(x0[0]-xf[0])/(self.dt*1.0))        
         traj = np.linspace(x0,xf,nsteps)
         t_traj = np.linspace(ti,nsteps*self.dt,nsteps)
-        return traj,t_traj 
+        return traj,t_traj  # TODO return a trace as opposed to trajectories in this way 
     
     def sample_us(self,Td, n_s = 6):
         '''
