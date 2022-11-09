@@ -111,39 +111,33 @@ class TWTLFormula(object):
                 'Child formula is unfeasible within time window'
             return [self.low + child_bounds[0], self.high]
 
-    def propositions(self):
-        '''Computes the set of predicates/booleanExpr that are involved in the TWTL formula'''
+    def propositions(self,props):
+        '''Computes the set of predicates/booleanExpr that are involved in the TWTL formula       
+        - return a set, 
+        - TODO [cisti] do this in more efficient way
+        '''
+        # use sets as opposed to lists  TODO [cristi]
         if self.op == Operation.HOLD:
             if self.proposition is None and self.predicate is not None:
                 # TODO [Fix] when 
                 predFormctx = self
                 return predFormctx
             else: 
-                props = self.props
-                if self.proposition not in self.props:
-                    props.append(self.proposition)
-                    self.props = props
-                    return
-                else:
-                    return        
+                props.add(self.proposition)
+                return props
+                   
         elif self.op in (Operation.AND, Operation.OR, Operation.CONCAT):
-            left_p = self.left.propositions()
-            right_p = self.right.propositions()
-            return left_p, right_p
+            left_p = self.left.propositions(set([]))
+            right_p = self.right.propositions(set([]))
+            for i in range(len(left_p)):
+                props.add(left_p.pop())
+            for i in range(len(right_p)):
+                props.add(right_p.pop())
+            return props
         elif self.op in (Operation.NOT, Operation.WITHIN):
-            child_p = self.child.propositions()
+            child_p = self.child.propositions(set([]))
             return child_p
         
-        
-        
-        '''Computes the set of propositions involved in the TWTL formula.'''
-        # if self.op == Operation.HOLD:
-        #     return {self.proposition}
-        # elif self.op in (Operation.AND, Operation.OR, Operation.CONCAT):
-        #     return self.left.variables() | self.right.variables()
-        # elif self.op in (Operation.NOT, Operation.WITHIN):
-        #     return self.child.variables()
-
     def identifier(self):
         h = hash(self)
         if h < 0:

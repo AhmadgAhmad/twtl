@@ -264,10 +264,7 @@ def translate(ast, kind='both', alphabet = set(['A','B']), norm=False, optimize=
     # ast = TWTLAbstractSyntaxTreeExtractor().visit(t)
     
 
-    # alphabet = ast.propositions() # More correctly in the current code the set of predicates 
-    # alphabet = set(['A','B'])
-    # alphabet = set(['A'])
-    
+    alphabet = ast.propositions(set([])) # More correctly in the current code the set of predicates 
     result= [alphabet]
 
 
