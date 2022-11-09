@@ -41,7 +41,11 @@ $$$$$$$$$$$$$$ Where Should I resume:
 - Return the alphabet of ast (the set of APs of the formula) twtl.py Line 267 
 - For the sampling, be more efficient in sampling. The current approach samples s then search 
 for the nearest amongst the product states with the same s component, sample   
+
 - Update the grammar to incorporate complicated APs, i.e., APs with conjunction of linear predicates. For now we consider APs with simple predicates
-- Similarly, extract the predicates alphabet without repetition. >>> LINE 285 twtl_rrtstar.py <<< 
+    For this do the following : 
+    - Fix the ambiguity introduced by the booleanExpr vs formula in the Conjunctions and disjunctions 
+
 - Create a function handler based off the predicates that extract the predicate function once and for all.
   Keep extracting the predicates ever time is not efficient. 
+- 
