@@ -43,13 +43,22 @@ license_text='''
 
 //parser entry point
 formula:
-      op='(' child=formula ')'
-    | left=formula op=OR right=formula
+      op = '(' child=formula ')' 
+    | left= formula op=OR right=formula
     | left=formula op=AND right=formula
     | left=formula op=CONCAT right=formula
-    | (op=HOLD '^' duration=RATIONAL)? (negated=NOT)? prop=booleanExpr//(TRUE | FALSE | PROP)
+    | (op=HOLD '^' duration=RATIONAL)? (negated=NOT)? prop = nf//(TRUE | FALSE | PROP)
     | op=NOT child=formula
     | op='[' child=formula ']' '^' '[' low=RATIONAL ',' high=RATIONAL ']'
+    ;
+
+
+nf: 
+    op = FALSE
+    | op = TRUE
+    | booleanExpr
+    | left= nf op=OR right=nf
+    | left= nf op=AND right=nf
     ;
 
 

@@ -229,7 +229,7 @@ def norm(formula):
     # compute TWTL bound
     return ast.bounds()
 
-def translate(ast, kind='both', alphabet = set(['A','B']), norm=False, optimize=True):
+def translate(ast, kind='both', norm=False, optimize=True):
     '''Converts a TWTL formula into an FSA. It can returns both a normal FSA or
     the automaton corresponding to the relaxed infinity version of the
     specification.

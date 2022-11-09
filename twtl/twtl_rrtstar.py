@@ -43,7 +43,7 @@ from twtlLexer import twtlLexer
 from twtlParser import twtlParser
 from twtl_ast import TWTLAbstractSyntaxTreeExtractor
 from twtl_ast import Operation as Op
-from twtl.twtl import Trace, TraceBatch, Trace_np
+from twtl import Trace, TraceBatch, Trace_np
 
 
 bernoulli = lambda p=0.5: 0 if uniform() <= p else 1
@@ -303,8 +303,8 @@ class Planner(object):
         parserP = twtlParser(tokensP)
         phiP = parserP.formula()
         twtl_astP =  TWTLAbstractSyntaxTreeExtractor().visit(phiP)
-        alphabetPrdsTemp  =  twtl_astP.propositions()
-        alphabetPrds = set(alphabetPrdsTemp[0]) # XXX this is problem dependant, it's hard- codded
+        # alphabetPrdsTemp  =  twtl_astP.propositions()
+        # alphabetPrds = set(alphabetPrdsTemp[0]) # XXX this is problem dependant, it's hard- codded
         # Translate the twtl formula into a DFA: 
         
         lexer = twtlLexer(InputStream(twtl_formula))
@@ -312,13 +312,13 @@ class Planner(object):
         parser = twtlParser(tokens)
         phi = parser.formula()
         twtl_ast =  TWTLAbstractSyntaxTreeExtractor().visit(phi)
-        alphabetAPs = set(['A','B'])
-        DFAresult = translate(ast=twtl_ast,alphabet = alphabetAPs,norm=True)
+        DFAresult = translate(ast=twtl_ast,norm=True)
+        alphabetAPs = DFAresult[0]
         self.DFAphi = DFAresult[1] # The determenstic finite automaton of the twtl specifications  
         self.astAPs  = twtl_ast
         self.astPreds = twtl_astP
         self.alphbtAPs = alphabetAPs
-        self.alphbtPrds = alphabetPrds
+        # self.alphbtPrds = alphabetPrds
         # Instantiate the transition system (will be built incrementally); essentially the RRT* tree: 
         self.TS = TS(x0 = x0) 
          
@@ -597,7 +597,9 @@ def main():
     x0 = (0,0)
     s0 = 0
     twtl_formula = 'H^3 A . H^5 B . [H^5 A]^[10,15]'
-    twtl_formula = 'H^3 A'
+    A_pred = 'x1>1 && x1<2 && x2>1 && x2<3'
+    B_pred = 'x1>2 && x1<4 && x2>1 && x2<3'
+    # twtl_formula = 'H^3 A'
     twtl_formulaPred =  'H^3 x1>1 . H^5 x1>2 . [H^5 x1>1]^[10,15]'
     
     planner.initialize(twtl_formula = twtl_formula, twtl_formulaPred = twtl_formulaPred ,x0 = x0, s0 = s0)
