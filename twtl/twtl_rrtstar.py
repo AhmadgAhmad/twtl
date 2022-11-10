@@ -297,17 +297,18 @@ class Planner(object):
      
         assert twtl_formula is not None
         assert twtl_formulaPred is not None
-        #Create the AST of the predicated formula: 
+        
+        # ------ The AP formula and the analogous predicted one -------
+        #Create the AST of the predicated formula (in NFs): 
+        
         lexerP = twtlLexer(InputStream(twtl_formulaPred))
         tokensP = CommonTokenStream(lexer=lexerP)
         parserP = twtlParser(tokensP)
         phiP = parserP.formula()
         twtl_astP =  TWTLAbstractSyntaxTreeExtractor().visit(phiP)
-        alphabetPrdsTemp  =  twtl_astP.propositions()
-        # alphabetPrdsTemp  =  twtl_astP.propositions()
-        # alphabetPrds = set(alphabetPrdsTemp[0]) # XXX this is problem dependant, it's hard- codded
-        # Translate the twtl formula into a DFA: 
+        alphabetPrdsTemp  =  twtl_astP.propositions(set([]))  
         
+        # Create the AST and automaton of the APs formula:         
         lexer = twtlLexer(InputStream(twtl_formula))
         tokens = CommonTokenStream(lexer=lexer)
         parser = twtlParser(tokens)
@@ -315,6 +316,9 @@ class Planner(object):
         twtl_ast =  TWTLAbstractSyntaxTreeExtractor().visit(phi)
         DFAresult = translate(ast=twtl_ast,norm=True)
         alphabetAPs = DFAresult[0]
+        # --------------------------------------------------------------
+        
+        
         self.DFAphi = DFAresult[1] # The determenstic finite automaton of the twtl specifications  
         self.astAPs  = twtl_ast
         self.astPreds = twtl_astP
@@ -598,12 +602,15 @@ def main():
     x0 = (0,0)
     s0 = 0
     twtl_formula = 'H^3 A . H^5 B . [H^5 A]^[10,15]'
+    # twtl_formula = 'H^3 A && H^5 B'
+
     # twtl_formulaPred = 'H^3 x1>1 && x1<2 && x2>1 && x2<3 .\
     #      H^5 x1>2 && x1<4 && x2>1 && x2<3 . [ H^5 x1>1 && x1<2 && x2>1 && x2<3]^[10,15]'
-    twtl_formulaPred = 'H^3 x1>1 .\
+    twtl_formulaPred = 'H^3 x1>1 && x1<2 && x2>1 && x2<3 .\
          H^5 x1>2 && x1<4 && x2>1 && x2<3 . [ H^5 x1>1 && x1<2 && x2>1 && x2<3]^[10,15]'
     RA = 'x1>1 && x1<2 && x2>1 && x2<3'
     RB = 'x1>2 && x1<4 && x2>1 && x2<3'
+
 
     planner.initialize(twtl_formula = twtl_formula, 
                        twtl_formulaPred = twtl_formulaPred,

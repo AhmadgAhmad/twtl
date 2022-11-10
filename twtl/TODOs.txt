@@ -39,7 +39,7 @@ $$$$$$$$$$$$$$ Where Should I resume:
 #####################################################################
 ### Problem to be fixed and currently compensated with hardcodes: ###
 #####################################################################
-- Return the alphabet of ast (the set of APs of the formula) twtl.py Line 267 
+- Return the alphabet of the predicated ast 
 - For the sampling, be more efficient in sampling. The current approach samples s then search 
 for the nearest amongst the product states with the same s component, sample   
 
@@ -49,7 +49,7 @@ for the nearest amongst the product states with the same s component, sample
 
 - Create a function handler based off the predicates that extract the predicate function once and for all.
   Keep extracting the predicates ever time is not efficient. 
-- 
+
 
 
 
