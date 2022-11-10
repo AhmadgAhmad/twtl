@@ -73,6 +73,7 @@ class TWTLFormula(object):
             self.relation = kwargs['relation']
             self.variable = kwargs['variable']
             self.threshold = kwargs['threshold']
+            self.nf_subformula = kwargs['nf_subformula']
         elif self.op == Operation.WITHIN:
             self.low = kwargs['low']
             self.high = kwargs['high']
@@ -122,8 +123,17 @@ class TWTLFormula(object):
                 # TODO [Fix] when 
                 predFormctx = self
                 return predFormctx
-            else: 
+            elif self.predicate is not None: 
                 props.add(self.proposition)
+                return props
+            else: # NF
+                nf_subformula = self.nf_subformula
+                left_p = nf_subformula.left.propositions(set([]))
+                right_p = nf_subformula.right.propositions(set([]))
+                for i in range(len(left_p)):
+                    props.add(left_p.pop())
+                for i in range(len(right_p)):
+                    props.add(right_p.pop())
                 return props
                    
         elif self.op in (Operation.AND, Operation.OR, Operation.CONCAT):
@@ -201,6 +211,7 @@ class TWTLAbstractSyntaxTreeExtractor(twtlVisitor):
         low = -1
         high = -1
         if op in (Operation.AND, Operation.OR, Operation.CONCAT):
+            
             ret = TWTLFormula(op, left=self.visit(ctx.left),
                               right=self.visit(ctx.right))
         elif op == Operation.NOT:
@@ -224,9 +235,10 @@ class TWTLAbstractSyntaxTreeExtractor(twtlVisitor):
                                     variable = pred_variable,
                                     threshold = pred_threshold,
                                     proposition = None,
+                                    nf_subformula = None, 
                                     negated=negated)
                 else: #Atomic proposition: 
-                    prop = ctx.children[3].children[0].symbol.text
+                    prop = ctx.children[3].children[0].children[0].symbol.text
                     if prop in ('true', 'false'):
                         prop = ctx.prop.text.lower() == 'true'
                     negated = ctx.negated is not None
@@ -235,11 +247,24 @@ class TWTLAbstractSyntaxTreeExtractor(twtlVisitor):
                                     variable = None,
                                     threshold = None,
                                     proposition = prop,
+                                    nf_subformula = None,
                                     negated=negated)
             else: # Normal form (essentially DNF of CNF of predicates): 
-                op  = Operation.getCode(ctx.children[3].op.text)
-                ret = TWTLFormula(op, left=self.visit(ctx.children[3].left),
-                              right=self.visit(ctx.children[3].right))
+                op_subformula  = Operation.getCode(ctx.children[3].op.text)
+                # nf_subformula = TWTLFormula(operation = op_subformula, left=self.visit(ctx.children[3].left),
+                #               right=self.visit(ctx.children[3].right)) # <<<<<<<<<<<<<<<<< The problem is here. 
+                nf_subformula = TWTLFormula(op_subformula,left =  ctx.children[3].left,
+                              right=ctx.children[3].right)
+                # nf_subformula = ctx.children[3]
+                negated = ctx.negated is not None
+                ret = TWTLFormula(op, duration=duration, predicate=None,
+                                    relation = None,
+                                    variable = None,
+                                    threshold = None,
+                                    proposition = None,
+                                    nf_subformula = nf_subformula,
+                                    negated=negated)
+                
         elif op == Operation.WITHIN:
             print((ctx.op.text, op))
             low = int(ctx.low.text)
