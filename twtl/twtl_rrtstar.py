@@ -303,6 +303,7 @@ class Planner(object):
         parserP = twtlParser(tokensP)
         phiP = parserP.formula()
         twtl_astP =  TWTLAbstractSyntaxTreeExtractor().visit(phiP)
+        alphabetPrdsTemp  =  twtl_astP.propositions()
         # alphabetPrdsTemp  =  twtl_astP.propositions()
         # alphabetPrds = set(alphabetPrdsTemp[0]) # XXX this is problem dependant, it's hard- codded
         # Translate the twtl formula into a DFA: 
@@ -597,12 +598,17 @@ def main():
     x0 = (0,0)
     s0 = 0
     twtl_formula = 'H^3 A . H^5 B . [H^5 A]^[10,15]'
-    A_pred = 'x1>1 && x1<2 && x2>1 && x2<3'
-    B_pred = 'x1>2 && x1<4 && x2>1 && x2<3'
-    # twtl_formula = 'H^3 A'
-    twtl_formulaPred =  'H^3 x1>1 . H^5 x1>2 . [H^5 x1>1]^[10,15]'
+    # twtl_formulaPred = 'H^3 x1>1 && x1<2 && x2>1 && x2<3 .\
+    #      H^5 x1>2 && x1<4 && x2>1 && x2<3 . [ H^5 x1>1 && x1<2 && x2>1 && x2<3]^[10,15]'
+    twtl_formulaPred = 'H^3 x1>1 .\
+         H^5 x1>2 && x1<4 && x2>1 && x2<3 . [ H^5 x1>1 && x1<2 && x2>1 && x2<3]^[10,15]'
+    RA = 'x1>1 && x1<2 && x2>1 && x2<3'
+    RB = 'x1>2 && x1<4 && x2>1 && x2<3'
+
+    planner.initialize(twtl_formula = twtl_formula, 
+                       twtl_formulaPred = twtl_formulaPred,
+                       x0 = x0, s0 = s0)
     
-    planner.initialize(twtl_formula = twtl_formula, twtl_formulaPred = twtl_formulaPred ,x0 = x0, s0 = s0)
     # Solve the planning problem (Line 6 - 30):   
     planner.solve()
     #-------------

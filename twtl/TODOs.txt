@@ -30,8 +30,9 @@ $$$$$$$$$$$$$$ Where Should I resume:
 - Create a method that maps from APs to predicates
 - Use that mapping function when computing the TWTL robustness 
 
-- Debug the robustness computation 
-- Debug the translator using ANTLR4 
+
+- Debug the robustness computation after the updated  
+- 
 - Make sure the sampling based planning algorithm in fact works without the robustness and the TWTL stuff
 
 
@@ -49,3 +50,8 @@ for the nearest amongst the product states with the same s component, sample
 - Create a function handler based off the predicates that extract the predicate function once and for all.
   Keep extracting the predicates ever time is not efficient. 
 - 
+
+
+
+<><><> Questions <><><>
+ 

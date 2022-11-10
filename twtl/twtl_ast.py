@@ -181,6 +181,10 @@ class TWTLFormula(object):
         return self.__string
 
 
+#>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<
+# Based off normal forms:  
+#<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
 class TWTLAbstractSyntaxTreeExtractor(twtlVisitor):
     '''Parse Tree visitor that constructs the AST of an TWTL formula'''
 
@@ -205,31 +209,37 @@ class TWTLAbstractSyntaxTreeExtractor(twtlVisitor):
             duration = 0 if ctx.duration is None else int(ctx.duration.text)
             
             # If the proposition is based off predicate: 
-            pred_flg = len(ctx.children[3].children) == 3
-            if pred_flg: 
-
-                pred = ctx.children[3]
-                pred_variable = pred.children[0].children[0].symbol.text 
-                pred_relation = pred.children[1].symbol.text
-                pred_threshold = float(pred.children[2].children[0].symbol.text)
-                negated = ctx.negated is not None
-                ret = TWTLFormula(op, duration=duration, predicate=pred,
-                                relation = pred_relation,
-                                variable = pred_variable,
-                                threshold = pred_threshold,
-                                proposition = None,
-                                negated=negated)
-            else: #Atomic proposition: 
-                prop = ctx.children[3].children[0].symbol.text
-                if prop in ('true', 'false'):
-                    prop = ctx.prop.text.lower() == 'true'
-                negated = ctx.negated is not None
-                ret = TWTLFormula(op, duration=duration, predicate=None,
-                                relation = None,
-                                variable = None,
-                                threshold = None,
-                                proposition = prop,
-                                negated=negated)
+            # - Check the NF is CNF or DNF: 
+            sngltn_flg = len(ctx.children[3].children) == 1 #After this check if the boolean expression is an AP or predicate
+            if sngltn_flg:
+                pred_flg = len(ctx.children[3].children[0].children) == 3
+                if pred_flg: 
+                    pred = ctx.children[3].children[0]
+                    pred_variable = pred.children[0].children[0].symbol.text 
+                    pred_relation = pred.children[1].symbol.text
+                    pred_threshold = float(pred.children[2].children[0].symbol.text)
+                    negated = ctx.negated is not None
+                    ret = TWTLFormula(op, duration=duration, predicate=pred,
+                                    relation = pred_relation,
+                                    variable = pred_variable,
+                                    threshold = pred_threshold,
+                                    proposition = None,
+                                    negated=negated)
+                else: #Atomic proposition: 
+                    prop = ctx.children[3].children[0].symbol.text
+                    if prop in ('true', 'false'):
+                        prop = ctx.prop.text.lower() == 'true'
+                    negated = ctx.negated is not None
+                    ret = TWTLFormula(op, duration=duration, predicate=None,
+                                    relation = None,
+                                    variable = None,
+                                    threshold = None,
+                                    proposition = prop,
+                                    negated=negated)
+            else: # Normal form (essentially DNF of CNF of predicates): 
+                op  = Operation.getCode(ctx.children[3].op.text)
+                ret = TWTLFormula(op, left=self.visit(ctx.children[3].left),
+                              right=self.visit(ctx.children[3].right))
         elif op == Operation.WITHIN:
             print((ctx.op.text, op))
             low = int(ctx.low.text)
@@ -241,6 +251,73 @@ class TWTLAbstractSyntaxTreeExtractor(twtlVisitor):
         else:
             print('Error: unknown operation!')
         return ret
+
+
+
+#>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<
+# Based of singleton 
+#<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+# class TWTLAbstractSyntaxTreeExtractor(twtlVisitor):
+#     '''Parse Tree visitor that constructs the AST of an TWTL formula'''
+
+#     def visitFormula(self, ctx):
+#         if ctx.op is None:
+#             op = Operation.HOLD
+#         elif ctx.op.text == '(':
+#             op = Operation.NOP
+#         elif ctx.op.text == '[':
+#             op = Operation.WITHIN
+#         else:
+#             op = Operation.getCode(ctx.op.text)
+#         ret = None
+#         low = -1
+#         high = -1
+#         if op in (Operation.AND, Operation.OR, Operation.CONCAT):
+#             ret = TWTLFormula(op, left=self.visit(ctx.left),
+#                               right=self.visit(ctx.right))
+#         elif op == Operation.NOT:
+#             ret = TWTLFormula(op, child=self.visit(ctx.child))
+#         elif op == Operation.HOLD: # The base case: 
+#             duration = 0 if ctx.duration is None else int(ctx.duration.text)
+            
+#             # If the proposition is based off predicate: 
+#             pred_flg = len(ctx.children[3].children) == 3
+#             if pred_flg: 
+
+#                 pred = ctx.children[3]
+#                 pred_variable = pred.children[0].children[0].symbol.text 
+#                 pred_relation = pred.children[1].symbol.text
+#                 pred_threshold = float(pred.children[2].children[0].symbol.text)
+#                 negated = ctx.negated is not None
+#                 ret = TWTLFormula(op, duration=duration, predicate=pred,
+#                                 relation = pred_relation,
+#                                 variable = pred_variable,
+#                                 threshold = pred_threshold,
+#                                 proposition = None,
+#                                 negated=negated)
+#             else: #Atomic proposition: 
+#                 prop = ctx.children[3].children[0].symbol.text
+#                 if prop in ('true', 'false'):
+#                     prop = ctx.prop.text.lower() == 'true'
+#                 negated = ctx.negated is not None
+#                 ret = TWTLFormula(op, duration=duration, predicate=None,
+#                                 relation = None,
+#                                 variable = None,
+#                                 threshold = None,
+#                                 proposition = prop,
+#                                 negated=negated)
+#         elif op == Operation.WITHIN:
+#             print((ctx.op.text, op))
+#             low = int(ctx.low.text)
+#             high = int(ctx.high.text)
+#             ret = TWTLFormula(Operation.WITHIN, child=self.visit(ctx.child),
+#                               low=low, high=high)
+#         elif op == Operation.NOP:
+#             ret = self.visit(ctx.child)
+#         else:
+#             print('Error: unknown operation!')
+#         return ret
 
 
 if __name__ == '__main__':
