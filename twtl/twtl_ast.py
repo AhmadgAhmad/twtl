@@ -123,17 +123,18 @@ class TWTLFormula(object):
                 # TODO [Fix] when 
                 predFormctx = self
                 return predFormctx
-            elif self.predicate is not None: 
+            elif self.proposition is not None: 
                 props.add(self.proposition)
                 return props
             else: # NF
                 nf_subformula = self.nf_subformula
-                left_p = nf_subformula.left.propositions(set([]))
-                right_p = nf_subformula.right.propositions(set([]))
-                for i in range(len(left_p)):
-                    props.add(left_p.pop())
-                for i in range(len(right_p)):
-                    props.add(right_p.pop())
+                props.add(nf_subformula)
+                # left_p = nf_subformula.left.propositions(set([]))
+                # right_p = nf_subformula.right.propositions(set([]))
+                # for i in range(len(left_p)):
+                #     props.add(left_p.pop())
+                # for i in range(len(right_p)):
+                #     props.add(right_p.pop())
                 return props
                    
         elif self.op in (Operation.AND, Operation.OR, Operation.CONCAT):
