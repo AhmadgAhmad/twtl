@@ -172,47 +172,44 @@ class TS(object):
         This function labels the observations based off the APs
         '''
         pass 
-    def inPrdRgn(self,pred,x):
-        
-        x0 = np.array([0,0])
-        xf = np.array([4,10])
-        nsteps = int(abs(x0[0]-xf[0])/(self.dt*1.0))        
-        traj = np.linspace(x0,xf,nsteps)
-        t_traj = np.linspace(ti,nsteps*self.dt,nsteps)
-        Trace_np(variables=['x1','x2'],timePoints=t_traj,data= traj)
-        
-        
-        if pred.relation in ('>=','>'):#(Op.GE, Op.GT):
-            rs =  [value - pred.threshold for value in traj[times[0]-1:times[-1]]]
-        elif pred.relation in ('<=','<'):#(Op.LE, Op.LT):
-            rs =  [pred.threshold - value for value in traj[times[0]-1:times[-1]]]
-        elif pred.relation == Op.EQ:
-            rs = [-np.abs(value - pred.threshold) for value in traj[times[0]-1:times[-1]]]
-        elif pred.relation == Op.NQ:
-            rs = [np.abs(value - pred.threshold) for value in traj[times[0]-1:times[-1]]]
     
     def boolSAT(self, val,ASTpred):
-        if ASTpred.op in (Op.OR,Op.AND):
+        if  type(ASTpred.op)== int:
+            op = ASTpred.op
+        elif ASTpred.op is not None: 
+            op = Op.getCode(ASTpred.op.text)
+        else: 
+            op = None
+             
+        if op in (Op.OR,Op.AND):
             # times = [t]
-            boolSatRight = self.boolSAT(ASTpred=ASTpred.right) 
+            boolSatRight = self.boolSAT(val = val,ASTpred=ASTpred.right) 
+            boolSatLeft = False 
             if boolSatRight:
-                boolSatLeft = self.boolSAT(ASTpred=ASTpred.left)
+                boolSatLeft = self.boolSAT(val = val,ASTpred=ASTpred.left)
             return boolSatRight and boolSatLeft 
-        elif ASTpred.op == Op.NOT: #if it's a booleanExpr then check the actual belonging:  
-            pass
+        elif op == Op.NOT: #if it's a booleanExpr then check the actual belonging:  
+            return not self.boolSAT(val,ASTpred)
         else:   # Boolean expression 
             # bring the trace business 
             boolExpr = ASTpred.children[0]
             relation = boolExpr.children[1].symbol.text 
             var = boolExpr.children[0].VARIABLE().symbol.text
             threshold = float(boolExpr.children[2].RATIONAL().symbol.text)
-            if var is 'x1': 
-                pass
-            elif var is 'x2': 
-                pass
+            if var == 'x1': 
+                if relation in ('<', '<='):
+                    boolSat = (val[0]-threshold) <= 0
+                elif relation in ('>', '>='):
+                    boolSat = (val[0]-threshold) >= 0
+            elif var == 'x2': 
+                if relation in ('<', '<='):
+                    boolSat = (val[1]-threshold) <= 0
+                elif relation in ('>', '>='):
+                    boolSat = (val[1]-threshold) >= 0
+            return boolSat
             
 
-    def belongTo(self,AlphbtAPs=None,AlphbtPrds=None,x=np.array([0,0])):
+    def L(self,AlphbtAPs=None,AlphbtPrds=None,x=np.array([0,0])):
         '''
         This function checks if a point belongs to a set in which all the linear 
         predicates are true and returns the correct label 
@@ -340,7 +337,9 @@ class Planner(object):
         phiP = parserP.formula()
         twtl_astP =  TWTLAbstractSyntaxTreeExtractor().visit(phiP)
         alphabetPrds  =  twtl_astP.propositions(set([]))  # For now we don't need the 
-        
+        alphabetPrds_ = list(alphabetPrds)
+        alphabetPrds = [alphabetPrds_[1],alphabetPrds_[0]]
+
         # Create the AST and automaton of the APs formula:         
         lexer = twtlLexer(InputStream(twtl_formula))
         tokens = CommonTokenStream(lexer=lexer)
@@ -380,8 +379,8 @@ class Planner(object):
         self.mission = mission 
         # self.system = system
         self.TS.dynamics = system
-        self.TS.belongTo(AlphbtAPs=list(alphabetAPs),AlphbtPrds=list(alphabetPrds),x=np.array([1.,2.]))
-    
+        l_out = self.TS.belongTo(AlphbtAPs=list(alphabetAPs),AlphbtPrds=alphabetPrds,x=np.array([10.,20.]))
+        a = 1
     
 
     # >>>>>>>>>>>>>>>>TWTL-based primitives functions <<<<<<<<<<<<<<<<<
