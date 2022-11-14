@@ -93,7 +93,7 @@ class PA(object):
         self.Sp = Sp
         self.p0 = p0 
         self.pf = pf 
-        self.Del_p = Del_p
+        self.Del_p = Del_p # Each element here is basically a trace of the system, i.e., a state trajectory as well as time trajectory 
         self.Fp = Fp 
         self.Sa = Sa # the set of automaton states 
     def smpl_nonEty_s(self): 
@@ -190,6 +190,39 @@ class TS(object):
             rs = [-np.abs(value - pred.threshold) for value in traj[times[0]-1:times[-1]]]
         elif pred.relation == Op.NQ:
             rs = [np.abs(value - pred.threshold) for value in traj[times[0]-1:times[-1]]]
+    
+    def boolSAT(self, val,ASTpred):
+        if ASTpred.op in (Op.OR,Op.AND):
+            # times = [t]
+            boolSatRight = self.boolSAT(ASTpred=ASTpred.right) 
+            if boolSatRight:
+                boolSatLeft = self.boolSAT(ASTpred=ASTpred.left)
+            return boolSatRight and boolSatLeft 
+        elif ASTpred.op == Op.NOT: #if it's a booleanExpr then check the actual belonging:  
+            pass
+        else:   # Boolean expression 
+            # bring the trace business 
+            boolExpr = ASTpred.children[0]
+            relation = boolExpr.children[1].symbol.text 
+            var = boolExpr.children[0].VARIABLE().symbol.text
+            threshold = float(boolExpr.children[2].RATIONAL().symbol.text)
+            if var is 'x1': 
+                pass
+            elif var is 'x2': 
+                pass
+            
+
+    def belongTo(self,AlphbtAPs=None,AlphbtPrds=None,x=np.array([0,0])):
+        '''
+        This function checks if a point belongs to a set in which all the linear 
+        predicates are true and returns the correct label 
+        '''
+        labelOut = 0
+        for ap, ASTpred in zip(AlphbtAPs,AlphbtPrds):
+            boolSat = self.boolSAT(val = x, ASTpred = ASTpred)
+            if boolSat:
+                labelOut = ap
+        return labelOut
         
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -210,11 +243,7 @@ class Planner(object):
     def __init__(self, specs_ast  = [], twtl_formula = []):
         '''Constructor'''
         # self.system = system # for now we assume point dummy robot (evolvethe dynamics using linspace) TODO [code cont]: Incoroprate different types of dynamics 
-        self.specification = specs_ast  # as AST
-        self.twtl_formula = twtl_formula
-        self.alphbtAPs = None
-        self.alphbtPrds = None
-
+        
 
         self.x0 = 0
         self.s0 = 0
@@ -251,7 +280,11 @@ class Planner(object):
         self.twtlDFA = None
         self.PA = None          # the product automaton
         self.TS = None
-
+        self.specification = specs_ast  # as AST
+        self.twtl_formula = twtl_formula
+        self.alphbtAPs = None
+        self.alphbtPrds = None
+        
 
         # Planner params: 
         self.mission = None
@@ -306,7 +339,7 @@ class Planner(object):
         parserP = twtlParser(tokensP)
         phiP = parserP.formula()
         twtl_astP =  TWTLAbstractSyntaxTreeExtractor().visit(phiP)
-        alphabetPrdsTemp  =  twtl_astP.propositions(set([]))  
+        alphabetPrds  =  twtl_astP.propositions(set([]))  # For now we don't need the 
         
         # Create the AST and automaton of the APs formula:         
         lexer = twtlLexer(InputStream(twtl_formula))
@@ -319,14 +352,16 @@ class Planner(object):
         # --------------------------------------------------------------
         
         
-        self.DFAphi = DFAresult[1] # The determenstic finite automaton of the twtl specifications  
+        self.DFAphi = DFAresult[1] # The deterministic finite automaton of the twtl specifications  
         self.astAPs  = twtl_ast
         self.astPreds = twtl_astP
-        self.alphbtAPs = alphabetAPs
+        self.alphbtAPs = list(alphabetAPs)
         # self.alphbtPrds = alphabetPrds
         # Instantiate the transition system (will be built incrementally); essentially the RRT* tree: 
-        self.TS = TS(x0 = x0) 
-         
+        self.TS = TS(x0 = x0) # This TS will the tree from which we'll trace the path 
+        self.TS.ASTap = twtl_ast
+        self.TS.ASTp = twtl_astP
+        
         # Instantiate the product automaton: 
         p0 = {'s': self.DFAphi.init[0], 'x': self.TS.x0}
         pf = {'s': self.DFAphi.final.pop(), 'x': self.TS.x0}
@@ -345,12 +380,13 @@ class Planner(object):
         self.mission = mission 
         # self.system = system
         self.TS.dynamics = system
-        self.TS.isIn(AlphbtAPs=list(alphabetAPs),AlphbtPrds=list(alphabetPrds),x=np.array([1.,2.]))
+        self.TS.belongTo(AlphbtAPs=list(alphabetAPs),AlphbtPrds=list(alphabetPrds),x=np.array([1.,2.]))
     
     
 
     # >>>>>>>>>>>>>>>>TWTL-based primitives functions <<<<<<<<<<<<<<<<<
     # >>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+       
 
     def near(self, s, x_new, d_steer):
         """
@@ -610,6 +646,14 @@ def main():
          H^5 x1>2 && x1<4 && x2>1 && x2<3 . [ H^5 x1>1 && x1<2 && x2>1 && x2<3]^[10,15]'
     RA = 'x1>1 && x1<2 && x2>1 && x2<3'
     RB = 'x1>2 && x1<4 && x2>1 && x2<3'
+
+    #Testing for simple example [No obstacles]: 
+    x0 = (0,0)
+    s0 = 0
+    twtl_formula = 'H^3 A . H^5 B'
+    twtl_formulaPred = 'H^3 x1>-1 && x1<2 && x2>-1 && x2<3 . H^5 x1>2.5 && x1<4 && x2>1 && x2<3 '
+    RA = 'x1>-1 && x1<2 && x2>-1 && x2<3'
+    RB = 'x1>2.5 && x1<4 && x2>1 && x2<3'
 
 
     planner.initialize(twtl_formula = twtl_formula, 
