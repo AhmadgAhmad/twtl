@@ -41,6 +41,7 @@ from twtl_ast import Operation as Op
 from util import _debug_pprint_tree
 import numpy as np
 from scipy.interpolate import interp1d
+from ordered_set import OrderedSet as oset 
 
 
 def monitor(formula=None, kind=None, dfa=None, cutoff=None):
@@ -264,7 +265,7 @@ def translate(ast, kind='both', norm=False, optimize=True):
     # ast = TWTLAbstractSyntaxTreeExtractor().visit(t)
     
 
-    alphabet = ast.propositions(set([])) # More correctly in the current code the set of predicates 
+    alphabet = ast.propositions(oset([])) # More correctly in the current code the set of predicates 
     result= [alphabet]
 
 
