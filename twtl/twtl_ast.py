@@ -33,6 +33,7 @@ from twtlLexer import twtlLexer
 from twtlParser import twtlParser
 from twtlVisitor import twtlVisitor
 from twtlListener import twtlListener
+from ordered_set import OrderedSet as oset 
 
 
 class Operation(object):
