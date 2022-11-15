@@ -44,6 +44,7 @@ from twtlParser import twtlParser
 from twtl_ast import TWTLAbstractSyntaxTreeExtractor
 from twtl_ast import Operation as Op
 from twtl import Trace, TraceBatch, Trace_np
+from ordered_set import OrderedSet as oset 
 
 
 bernoulli = lambda p=0.5: 0 if uniform() <= p else 1
@@ -123,56 +124,37 @@ class PA(object):
             s = random.sample(Sa,1)
             if s[0] in Sps:
                 break
-        Vs = [xts['x'] for xts in Sp if xts['s']==s[0]] # with s being the specs automaton state:  
+        Vs = [ps['v'] for ps in Sp if ps['s']==s[0]] # with s being the specs automaton state:  
+        Xs = [v['x'] for v in Vs]
         # The tree of the NNs (we cannot build it outside)
-        tempTree = KDTree(Vs, leaf_size=2) #TODO (meeting) build out of here (when adding a vertex to the tree)
+        tempTree = KDTree(Xs, leaf_size=2) #TODO (meeting) build out of here (when adding a vertex to the tree)
 
         # The index of the NN vertex (it is different than indexID of the vertex)
         nn_currIndex = int(tempTree.query(x_rand.reshape([1, 2]), k=1, return_distance=False))
-        x_exp = Vs[nn_currIndex]
-        return x_exp, s[0]
+        v_exp = Vs[nn_currIndex]
+        return v_exp, s[0]
     
     def update_PA(self):
         pass
 
     
 
-class PAstate(object):
-    '''
-    Class of product automaton states 
-    '''
-    def __init__(self):
-        self.TX_xs = None # The cooerdinates of the TS states that correspond to the automaton state. 
-        self.TX_ids =None # Keep carying over the id of the vertices of intrest of TS (this will be usful when we want to retrive the actual vertices because we might need to use stored information at each node)
-        self.SP = None    # Set of Paroduct automaton states
-        self.TS = None
-        self.Atmtn = None # the automaton that corresponds to the specifications automaton 
-    def return_TS_xs(slef):
-        pass
 
 class TS(object):
-    def __init__(self,x0,system = None):
-        self.V = None           # the set of vertices 
+    def __init__(self,x0 = None,system = None):
+        self.V = []           # the set of vertices 
         self.E = None           # the set of edges, aka transitons 
         self.dynamics = system    # the actual underlying dynamics that TS is an abstraction for. 
         self.x0  = x0           # the initial state 
         self.APs = []           # The set of APs
         self.ASTp = None
         self.ASTap = None
+        if x0 is not None: 
+            v0 = {'x':x0,'ind':0,'p_ind': None,'traj':[]}
+            self.V.append(v0)
+            self.v0 = v0
     def update(self):
         pass 
-    def isIn(self,AlphbtAPs,AlphbtPrds,x):
-        a = 1 
-        Ls = []
-        for ap, pred in zip(AlphbtAPs,AlphbtPrds):
-            L = self.inPrdRgn(pred=pred,x=x)
-            Ls.append(L)
-    def L(self,AlphbtAPs,AlphbtPrds,x):
-        '''
-        This function labels the observations based off the APs
-        '''
-        pass 
-    
     def boolSAT(self, val,ASTpred):
         if  type(ASTpred.op)== int:
             op = ASTpred.op
@@ -304,16 +286,40 @@ class Planner(object):
         '''
         d_steer = 1
         bounds = self.mission.system['bound']
-        x_rand = np.random.uniform([bounds[0][0],bounds[1][0]],[bounds[0][1],bounds[1][1]])
-        x_exp, s_rand = self.PA.sample(x_rand) # Sample a product automaton state
-        traj, t_traj = self.TS.dynamics.steer(x0 = x_exp, xd= x_rand, d_steer = d_steer, ti = 0)
-        x_new = traj[-1,:]
-        # finding the near set: 
-        Vnear = self.near(s = s_rand, x_new = x_new, d_steer = d_steer)
-        x_max = x_exp
-        x_max = self.bestParent(x_max,Vnear)
-        # Might not need steering here 
+        
+        #The planning loop Line 6-28 : 
+        t = 0
+        for i in range(self.mission.planning['planning_steps']):
+            # building the tree based-off sampling and considering no obstacles in the workspace. 
+            # x_rand = np.random.uniform([bounds[0][0],bounds[1][0]],[bounds[0][1],bounds[1][1]])
+            # twtl_formulaPred = 'H^3 x1>-1 && x1<2 && x2>-1 && x2<3 . H^5 x1>2.5 && x1<4 && x2>1 && x2<3 '
+            x_rand = np.random.uniform([-1,-1],[5,5])
+            v_exp, s_rand = self.PA.sample(x_rand) # Sample a product automaton state
+            traj, t_traj = self.TS.dynamics.steer(x0 = v_exp['x'], xd= x_rand, d_steer = d_steer, ti = t, exct_flg = False) 
+            x_new = traj[-1,:]
+            L_xnew = self.TS.L(AlphbtAPs=self.alphbtAPs,AlphbtPrds=self.alphbtPrds,x=x_new)
+            if L_xnew !=0: 
+                s_new = self.DFAphi.next_state(q = s_rand, props = L_xnew) # find the next automaton state, then, extend the TS as well as the PA.    
+                v_new = {'x':x_new,'ind':i+1,'p_ind':v_exp['ind'],'traj':traj}
+                p_new = {'s': s_new, 'v': v_new}
+                self.TS.V.append(v_new) # FIXME this step isn't necessary 
+                self.PA.Sp.append(p_new)
+            else: 
+                a = 1 
+                 
+
+
+            # finding the near set: 
+            # Vnear = self.near(s = s_rand, x_new = x_new, d_steer = d_steer)
+            # x_max = x_exp
+            # x_max = self.bestParent(x_max,Vnear)
+            # L_xnew = self.TS.L(AlphbtAPs=self.alphbtAPs,AlphbtPrds=self.alphbtPrds,x=x_new)
+
+            # Might not need steering here 
         a = 1 
+
+            # - - - -
+            #= Make the trace of the edge after adding it to the TS 
 
 
 
@@ -336,9 +342,9 @@ class Planner(object):
         parserP = twtlParser(tokensP)
         phiP = parserP.formula()
         twtl_astP =  TWTLAbstractSyntaxTreeExtractor().visit(phiP)
-        alphabetPrds  =  twtl_astP.propositions(set([]))  # For now we don't need the 
-        alphabetPrds_ = list(alphabetPrds)
-        alphabetPrds = [alphabetPrds_[1],alphabetPrds_[0]]
+        alphabetPrds  =  twtl_astP.propositions(oset([]))  # For now we don't need the 
+        alphabetPrds = list(alphabetPrds)
+        # alphabetPrds = [alphabetPrds_[1],alphabetPrds_[0]]
 
         # Create the AST and automaton of the APs formula:         
         lexer = twtlLexer(InputStream(twtl_formula))
@@ -348,6 +354,7 @@ class Planner(object):
         twtl_ast =  TWTLAbstractSyntaxTreeExtractor().visit(phi)
         DFAresult = translate(ast=twtl_ast,norm=True)
         alphabetAPs = DFAresult[0]
+        # alphabetAPs = ['A','B']
         # --------------------------------------------------------------
         
         
@@ -355,15 +362,16 @@ class Planner(object):
         self.astAPs  = twtl_ast
         self.astPreds = twtl_astP
         self.alphbtAPs = list(alphabetAPs)
-        # self.alphbtPrds = alphabetPrds
+        self.alphbtPrds = alphabetPrds
         # Instantiate the transition system (will be built incrementally); essentially the RRT* tree: 
         self.TS = TS(x0 = x0) # This TS will the tree from which we'll trace the path 
         self.TS.ASTap = twtl_ast
         self.TS.ASTp = twtl_astP
         
+        
         # Instantiate the product automaton: 
-        p0 = {'s': self.DFAphi.init[0], 'x': self.TS.x0}
-        pf = {'s': self.DFAphi.final.pop(), 'x': self.TS.x0}
+        p0 = {'s': self.DFAphi.init[0], 'v': self.TS.v0}
+        pf = {'s': self.DFAphi.final.pop(), 'v': self.TS.v0}
         Sp = [p0]
         Del_p = []
         Fp = [pf]
@@ -379,8 +387,8 @@ class Planner(object):
         self.mission = mission 
         # self.system = system
         self.TS.dynamics = system
-        l_out = self.TS.belongTo(AlphbtAPs=list(alphabetAPs),AlphbtPrds=alphabetPrds,x=np.array([10.,20.]))
-        a = 1
+        # l_out = self.TS.L(AlphbtAPs=list(alphabetAPs),AlphbtPrds=alphabetPrds,x=np.array([10.,20.]))
+        # a = 1
     
 
     # >>>>>>>>>>>>>>>>TWTL-based primitives functions <<<<<<<<<<<<<<<<<
@@ -650,7 +658,7 @@ def main():
     x0 = (0,0)
     s0 = 0
     twtl_formula = 'H^3 A . H^5 B'
-    twtl_formulaPred = 'H^3 x1>-1 && x1<2 && x2>-1 && x2<3 . H^5 x1>2.5 && x1<4 && x2>1 && x2<3 '
+    twtl_formulaPred = 'H^3 x1>-.1 && x1<1 && x2>-0.1 && x2<2 . H^5 x1>2.5 && x1<4 && x2>1 && x2<4 '
     RA = 'x1>-1 && x1<2 && x2>-1 && x2<3'
     RB = 'x1>2.5 && x1<4 && x2>1 && x2<3'
 
@@ -723,4 +731,5 @@ def main():
     logging.info('Done!')
 
 if __name__ == '__main__':
-     main()
+    np.random.seed(1000)
+    main()
