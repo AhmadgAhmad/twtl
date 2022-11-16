@@ -307,7 +307,8 @@ class Planner(object):
             else: # Just update the TS (tree) in which we'll find the path.   
                 a = 1 
                 self.TS.V.append(v_new) # FIXME this step isn't necessary 
-
+            if i==10: 
+                debug_show_ts(planner=self,system_type=self.mission.system['type'])
 
             # finding the near set: 
             # Vnear = self.near(s = s_rand, x_new = x_new, d_steer = d_steer)
@@ -521,73 +522,24 @@ def debug_show_ts(planner, system_type):
 #     axes = figure.axes[0]
 #     axes.axis('equal') # sets aspect ration to 1
 
-    plt.xlim(planner.system.bound[0])
-    plt.ylim(planner.system.bound[1])
+    plt.xlim((-1,5))
+    plt.ylim((-1,5))
 
     # draw regions
-    if system_type == 'double_integrator':
-        x, y = zip(*planner.ts.nodes)
-        # # AV specs: 
-        # plt.fill([0.1, 0.4, 0.4, 0.1, 0.1], [.1, .1, 0.2, 0.2, .1],
-        #    color=(1, 0.5, 0, 0.2)) # Start Acce
-        # plt.fill([3.5, 4, 4, 3.5,3.5], [.1, .1, 0.3, 0.3, .1],
-        #    color=(1, 0.5, 0, 0.2)) # Done with passing
-        # plt.fill([1.8, 2.5,2.5, 1.8,1.8], [-.1, -.1, 0.1, 0.1, -.1],
-        #    color=(1., .1, .1,.1)) # Obstacle
-
-        # #The Always Regions: 
-        # plt.fill([.4, 1, 1, .4, .4], [.15, .15, .5, 0.5, .15],
-        #          color=(0, 1, 0, 0.2))
-        # plt.fill([1.5, 3, 3, 1.5, 1.5], [.3, .3, .7, 0.7, .3],
-        #          color=(0, 1, 0, 0.2))
-        # plt.fill([3.5, 4, 4, 3.5,3.5], [.1, .1, .3, .3, .1],
-        #          color=(0, 1, 0, 0.2))
-         
-
-        
-        #$$$ Cristi's Specs: 
-        plt.fill([3.5, 4, 4, 3.5, 3.5], [-0.2, -0.2, 0.2, 0.2, -0.2],
+    if system_type == 'pt_robot':       
+        # x, y = zip(*planner.ts.nodes)
+        # #$$$ Cristi's Specs: 
+        plt.fill([-.1,1,1,-.1,-.1], [-.1,-.1,2,2,-.1],
              color=(1, 0.5, 0, 0.2))
-        plt.fill([0, 2.1, 2.1, 0, 0], [-0.5, -0.5, 0.5, 0.5, -0.5],
+        plt.fill([2.5,4,4,2.5,2.5], [1,1,4,4,1],
                  color=(0, 0, 1, 0.2))
-
-        plt.fill([2, 3, 3, 2, 2], [0.5, 0.5, 1.0, 1.0, 0.5],
-                 color=(0, 1, 0, 0.2))
-        # plt.fill([2, 3, 3, 2, 2], [-1.0, -1.0, -0.5, -0.5, -1.0],
-        #          color=(0, 1, 0, 0.2))
-        #-------------------------------------
-
-        # plt.fill([3.5, 4, 4, 3.5, 3.5], [-0.2, -0.2, 0.2, 0.2, -0.2],
-        #      color=(1, 0.5, 0, 0.2))
-        # plt.fill([0.1, 1, 1, 0.1, 0.1], [0.2, 0.2, 0.5, 0.5, 0.2],
-        #          color=(0, 1, 0, 0.2))
-
-        # plt.fill([1.5, 3.25, 3.25, 1.5, 1.5], [0.5, 0.5, 1.0, 1.0, 0.5],
-        #          color=(0, 1, 0, 0.2))
-        # plt.fill([1.5, 3, 3, 1.5, 1.5], [-0.25, -0.25, 0.4, 0.4, -0.25],
-        #          color=(.1, .1, .1, .5))
-    elif system_type == 'rear_wheel_car':
-        axes = figure.axes[0]
-        axes.axis('equal') # sets aspect ration to 1
-
-        x, y, _, _, _= zip(*planner.ts.nodes)
-        plt.fill([1, 1, 2, 2, 1], [2, 3, 3, 2, 2], color=(0.7, 0.7, 0.7, 0.2))
-        plt.fill([3, 4, 4, 3, 3], [2, 2, 3, 3, 2], color=(1, 0.5, 0, 0.2))
-#         plt.fill([2.5, 3.5, 3.5, 2.5, 2.5], [1, 1, 2, 2, 1],
-#                  color=(0.7, 0.7, 0.7, 0.2))
-#         plt.fill([0, 1, 1, 0, 0], [0, 0, 1, 1, 0], color=(0, 0.5, 1, 0.2))
-    else:
-        raise NotImplementedError
-
-    plt.xlabel(planner.specification.space.var_names[0])
-    plt.ylabel(planner.specification.space.var_names[1])
-    plt.plot(x, y, 'ko')
+    # plt.xlabel(planner.specification.space.var_names[0])
+    # plt.ylabel(planner.specification.space.var_names[1])
+    # plt.plot(x, y, 'ko')
     xi, yi = planner.system.initial_state[:2]
     plt.plot([xi], [yi], 'bD')
 
     for x in planner.ts.nodes:
-        # phi_d = planner.ts.nodes[x]
-        
         for phi in planner.ts.nodes[x]:
             # Plotting the node trajectory and the DIS: 
             traj, _ = planner.ts.nodes[x][phi]['trajectory']
@@ -596,13 +548,6 @@ def debug_show_ts(planner, system_type):
             elif system_type == 'rear_wheel_car':
                 xx, yy,_, _, _ = zip(*traj)
             plt.plot(xx, yy, 'k')
-            #Plot DIS of each node
-            #------------------------------------------------
-            # u,v = planner.ts.nodes[x][phi]['chi']
-            # plt.quiver(x[0],x[1],u,v,width = 0.003,color = 'g')
-
-            # Plot the exploratory trajectory -- if one exists: 
-            #----------------------------------------------
             if planner.plt_ext_flg:
                 ext_traj = planner.ts.nodes[x][phi]['ext_traj']
                 ext_traj = ext_traj[1][0]
@@ -650,18 +595,18 @@ def main():
 
     # twtl_formulaPred = 'H^3 x1>1 && x1<2 && x2>1 && x2<3 .\
     #      H^5 x1>2 && x1<4 && x2>1 && x2<3 . [ H^5 x1>1 && x1<2 && x2>1 && x2<3]^[10,15]'
-    twtl_formulaPred = 'H^3 x1>1 && x1<2 && x2>1 && x2<3 .\
-         H^5 x1>2 && x1<4 && x2>1 && x2<3 . [ H^5 x1>1 && x1<2 && x2>1 && x2<3]^[10,15]'
-    RA = 'x1>1 && x1<2 && x2>1 && x2<3'
-    RB = 'x1>2 && x1<4 && x2>1 && x2<3'
+    # twtl_formulaPred = 'H^3 x1>1 && x1<2 && x2>1 && x2<3 .\
+    #      H^5 x1>2 && x1<4 && x2>1 && x2<3 . [ H^5 x1>1 && x1<2 && x2>1 && x2<3]^[10,15]'
+    # RA = 'x1>1 && x1<2 && x2>1 && x2<3'
+    # RB = 'x1>2 && x1<4 && x2>1 && x2<3'
 
     #Testing for simple example [No obstacles]: 
     x0 = (0,0)
     s0 = 0
     twtl_formula = '[H^3 A]^[0,5] . [H^3 B]^[0,15]'
     twtl_formulaPred = '[H^3 x1>-.1 && x1<1 && x2>-0.1 && x2<2]^[0,5] . [H^5 x1>2.5 && x1<4 && x2>1 && x2<4]^[0,15]'
-    RA = 'x1>-1 && x1<2 && x2>-1 && x2<3'
-    RB = 'x1>2.5 && x1<4 && x2>1 && x2<3'
+    # RA = 'x1>-1 && x1<2 && x2>-1 && x2<3'
+    # RB = 'x1>2.5 && x1<4 && x2>1 && x2<3'
 
 
     planner.initialize(twtl_formula = twtl_formula, 
