@@ -17,6 +17,9 @@ TODO:
 '''
 
 # from cmath import inf
+import numpy as np, sys
+import matplotlib.pyplot as plt
+
 from ast import Del
 from ftplib import parse150
 import logging
@@ -27,15 +30,15 @@ from collections import deque
 import time
 import timeit
 import random
-import numpy as np, sys
+
 from numpy.random import uniform, exponential, randint
 from sklearn.neighbors import KDTree
 from sklearn.neighbors import BallTree
 from sklearn.neighbors import KernelDensity
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D, axes3d
-from matplotlib import cm
-import plotly.graph_objects as go
+
+# from mpl_toolkits.mplot3d import Axes3D, axes3d
+# from matplotlib import cm
+# import plotly.graph_objects as go
 # import twtl.twtl  as twtl
 from antlr4 import InputStream, CommonTokenStream
 from twtl import translate
@@ -124,6 +127,7 @@ class PA(object):
             s = random.sample(Sa,1)
             if s[0] in Sps:
                 break
+        # s = random.sample(Sa,1)
         Vs = [ps['v'] for ps in Sp if ps['s']==s[0]] # with s being the specs automaton state:  
         Xs = [v['x'] for v in Vs]
         # The tree of the NNs (we cannot build it outside)
@@ -196,7 +200,7 @@ class TS(object):
         This function checks if a point belongs to a set in which all the linear 
         predicates are true and returns the correct label 
         '''
-        labelOut = 0
+        labelOut = '(else)'
         for ap, ASTpred in zip(AlphbtAPs,AlphbtPrds):
             boolSat = self.boolSAT(val = x, ASTpred = ASTpred)
             if boolSat:
@@ -289,7 +293,7 @@ class Planner(object):
         
         #The planning loop Line 6-28 : 
         t = 0
-        for i in range(5000): #range(self.mission.planning['planning_steps']):
+        for i in range(10000): #range(self.mission.planning['planning_steps']):
             # building the tree based-off sampling and considering no obstacles in the workspace. 
             # x_rand = np.random.uniform([bounds[0][0],bounds[1][0]],[bounds[0][1],bounds[1][1]])
             # twtl_formulaPred = 'H^3 x1>-1 && x1<2 && x2>-1 && x2<3 . H^5 x1>2.5 && x1<4 && x2>1 && x2<3 '
@@ -298,16 +302,26 @@ class Planner(object):
             traj, t_traj = self.TS.dynamics.steer(x0 = v_exp['x'], xd= x_rand, d_steer = d_steer, ti = t, exct_flg = False) 
             x_new = traj[-1,:]
             L_xnew = self.TS.L(AlphbtAPs=self.alphbtAPs,AlphbtPrds=self.alphbtPrds,x=x_new)
-            if L_xnew !=0: 
-                s_new = self.DFAphi.next_state(q = s_rand, props = L_xnew) # find the next automaton state, then, extend the TS as well as the PA.    
+            # if L_xnew !=0: 
+            s_new = self.DFAphi.next_state(q = s_rand, props = L_xnew) # find the next automaton state, then, extend the TS as well as the PA.    
+            if s_new is not None: 
                 v_new = {'x':x_new,'ind':i+1,'p_ind':v_exp['ind'],'traj':traj}
                 p_new = {'s': s_new, 'v': v_new}
                 # Update the product automaton states: 
                 self.PA.Sp.append(p_new) #
-            else: # Just update the TS (tree) in which we'll find the path.   
-                a = 1 
-                self.TS.V.append(v_new) # FIXME this step isn't necessary 
-            if i==10: 
+                print(L_xnew)
+            
+            # Testing the labels of the generated points: 
+            # for p in self.PA.Sp:
+            #     xp = p['v']['x']
+            #     Lbl = self.TS.L(AlphbtAPs=self.alphbtAPs,AlphbtPrds=self.alphbtPrds,x=xp)
+            #     if Lbl == 'B': 
+            #       print(Lbl)
+
+            # else: # Just update the TS (tree) in which we'll find the path.   
+            #     a = 1 
+            #     self.TS.V.append(v_new) # FIXME this step isn't necessary 
+            if i==500: 
                 debug_show_ts(planner=self,system_type=self.mission.system['type'])
 
             # finding the near set: 
@@ -354,7 +368,7 @@ class Planner(object):
         parser = twtlParser(tokens)
         phi = parser.formula()
         twtl_ast =  TWTLAbstractSyntaxTreeExtractor().visit(phi)
-        DFAresult = translate(ast=twtl_ast,norm=True)
+        DFAresult = translate(ast=twtl_ast)
         alphabetAPs = DFAresult[0]
         # alphabetAPs = ['A','B']
         # --------------------------------------------------------------
@@ -512,12 +526,12 @@ def debug_show_ts(planner, system_type):
     import os.path
     # import matplotlib.pyplot as plt
 
-    figure = plt.figure()
+    # figure = plt.figure()
     # TODO [PY2]>>>
     # figure.add_subplot('111')
     # TODO [PY2]<<<
     # TODO [PY3]>>>
-    figure.add_subplot(111)
+    # figure.add_subplot(111)
     # TODO [PY3]<<<
 #     axes = figure.axes[0]
 #     axes.axis('equal') # sets aspect ration to 1
@@ -529,32 +543,19 @@ def debug_show_ts(planner, system_type):
     if system_type == 'pt_robot':       
         # x, y = zip(*planner.ts.nodes)
         # #$$$ Cristi's Specs: 
-        plt.fill([-.1,1,1,-.1,-.1], [-.1,-.1,2,2,-.1],
+        # twtl_formulaPred = '[H^2 x1>-.1 && x1<2 && x2>-0.1 && x2<2]^[0,3] . [H^5 x1>2.5 && x1<4 && x2>1 && x2<4]^[0,15]'
+        plt.fill([-.1,2,2,-.1,-.1], [-.1,-.1,2,2,-.1],
              color=(1, 0.5, 0, 0.2))
         plt.fill([2.5,4,4,2.5,2.5], [1,1,4,4,1],
                  color=(0, 0, 1, 0.2))
-    # plt.xlabel(planner.specification.space.var_names[0])
-    # plt.ylabel(planner.specification.space.var_names[1])
-    # plt.plot(x, y, 'ko')
-    xi, yi = planner.system.initial_state[:2]
-    plt.plot([xi], [yi], 'bD')
-
-    for x in planner.ts.nodes:
-        for phi in planner.ts.nodes[x]:
-            # Plotting the node trajectory and the DIS: 
-            traj, _ = planner.ts.nodes[x][phi]['trajectory']
-            if system_type == 'double_integrator':
-                xx, yy = zip(*traj)
-            elif system_type == 'rear_wheel_car':
-                xx, yy,_, _, _ = zip(*traj)
-            plt.plot(xx, yy, 'k')
-            if planner.plt_ext_flg:
-                ext_traj = planner.ts.nodes[x][phi]['ext_traj']
-                ext_traj = ext_traj[1][0]
-                if type(ext_traj) is list:
-                    xx_ext, yy_ext = zip(*ext_traj)
-                    plt.plot(xx_ext, yy_ext, 'g')
-                a = 1
+    for p in planner.PA.Sp:
+        traj = p['v']['traj']
+        if len(traj)>0:
+            plt.plot(traj[:,0],traj[:,1],color='red')
+    a = 1
+    
+    
+   
         
 
 
@@ -604,7 +605,7 @@ def main():
     x0 = (0,0)
     s0 = 0
     twtl_formula = '[H^3 A]^[0,5] . [H^3 B]^[0,15]'
-    twtl_formulaPred = '[H^3 x1>-.1 && x1<1 && x2>-0.1 && x2<2]^[0,5] . [H^5 x1>2.5 && x1<4 && x2>1 && x2<4]^[0,15]'
+    twtl_formulaPred = '[H^2 x1>-.1 && x1<2 && x2>-0.1 && x2<2]^[0,3] . [H^5 x1>2.5 && x1<4 && x2>1 && x2<4]^[0,15]'
     # RA = 'x1>-1 && x1<2 && x2>-1 && x2<3'
     # RB = 'x1>2.5 && x1<4 && x2>1 && x2<3'
 
