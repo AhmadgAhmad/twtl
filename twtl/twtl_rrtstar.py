@@ -289,11 +289,11 @@ class Planner(object):
         
         #The planning loop Line 6-28 : 
         t = 0
-        for i in range(self.mission.planning['planning_steps']):
+        for i in range(5000): #range(self.mission.planning['planning_steps']):
             # building the tree based-off sampling and considering no obstacles in the workspace. 
             # x_rand = np.random.uniform([bounds[0][0],bounds[1][0]],[bounds[0][1],bounds[1][1]])
             # twtl_formulaPred = 'H^3 x1>-1 && x1<2 && x2>-1 && x2<3 . H^5 x1>2.5 && x1<4 && x2>1 && x2<3 '
-            x_rand = np.random.uniform([-1,-1],[5,5])
+            x_rand = np.random.uniform([-1,-1],[5,5]) 
             v_exp, s_rand = self.PA.sample(x_rand) # Sample a product automaton state
             traj, t_traj = self.TS.dynamics.steer(x0 = v_exp['x'], xd= x_rand, d_steer = d_steer, ti = t, exct_flg = False) 
             x_new = traj[-1,:]
@@ -302,11 +302,11 @@ class Planner(object):
                 s_new = self.DFAphi.next_state(q = s_rand, props = L_xnew) # find the next automaton state, then, extend the TS as well as the PA.    
                 v_new = {'x':x_new,'ind':i+1,'p_ind':v_exp['ind'],'traj':traj}
                 p_new = {'s': s_new, 'v': v_new}
-                self.TS.V.append(v_new) # FIXME this step isn't necessary 
-                self.PA.Sp.append(p_new)
-            else: 
+                # Update the product automaton states: 
+                self.PA.Sp.append(p_new) #
+            else: # Just update the TS (tree) in which we'll find the path.   
                 a = 1 
-                 
+                self.TS.V.append(v_new) # FIXME this step isn't necessary 
 
 
             # finding the near set: 
@@ -316,6 +316,7 @@ class Planner(object):
             # L_xnew = self.TS.L(AlphbtAPs=self.alphbtAPs,AlphbtPrds=self.alphbtPrds,x=x_new)
 
             # Might not need steering here 
+        
         a = 1 
 
             # - - - -
@@ -657,8 +658,8 @@ def main():
     #Testing for simple example [No obstacles]: 
     x0 = (0,0)
     s0 = 0
-    twtl_formula = 'H^3 A . H^5 B'
-    twtl_formulaPred = 'H^3 x1>-.1 && x1<1 && x2>-0.1 && x2<2 . H^5 x1>2.5 && x1<4 && x2>1 && x2<4 '
+    twtl_formula = '[H^3 A]^[0,5] . [H^3 B]^[0,15]'
+    twtl_formulaPred = '[H^3 x1>-.1 && x1<1 && x2>-0.1 && x2<2]^[0,5] . [H^5 x1>2.5 && x1<4 && x2>1 && x2<4]^[0,15]'
     RA = 'x1>-1 && x1<2 && x2>-1 && x2<3'
     RB = 'x1>2.5 && x1<4 && x2>1 && x2<3'
 
