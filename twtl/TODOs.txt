@@ -34,7 +34,8 @@ $$$$$$$$$$$$$$ Where Should I resume:
 - Debug the robustness computation after the updated  
 - 
 - Make sure the sampling based planning algorithm in fact works without the robustness and the TWTL stuff
-
+- Deterministic sampling. 
+-  
 
 #####################################################################
 ### Problem to be fixed and currently compensated with hardcodes: ###
@@ -47,6 +48,7 @@ for the nearest amongst the product states with the same s component, sample
 
 - Create a function handler based off the predicates that extract the predicate function once and for all.
   Keep extracting the predicates ever time is not efficient. 
+- Update LOMAP to python3! Basically upgrade networkx to the latest version which everything works fine.  
 
 
 

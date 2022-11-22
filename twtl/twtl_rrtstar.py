@@ -146,6 +146,8 @@ class PA(object):
 
 class TS(object):
     def __init__(self,x0 = None,system = None):
+        filename = '/home/ahmad/Desktop/twtl/twtl/case1_point_robot.yaml'
+        mission = Mission.from_file(filename)
         self.V = []           # the set of vertices 
         self.E = None           # the set of edges, aka transitons 
         self.dynamics = system    # the actual underlying dynamics that TS is an abstraction for. 
@@ -153,6 +155,8 @@ class TS(object):
         self.APs = []           # The set of APs
         self.ASTp = None
         self.ASTap = None
+        self.dtrSampls = mission.dtrSampling['samples']
+        self.dtrSmplsIter = 0 
         if x0 is not None: 
             v0 = {'x':x0,'ind':0,'p_ind': None,'traj':[]}
             self.V.append(v0)
@@ -298,8 +302,10 @@ class Planner(object):
             # x_rand = np.random.uniform([bounds[0][0],bounds[1][0]],[bounds[0][1],bounds[1][1]])
             # twtl_formulaPred = 'H^3 x1>-1 && x1<2 && x2>-1 && x2<3 . H^5 x1>2.5 && x1<4 && x2>1 && x2<3 '
             x_rand = np.random.uniform([-1,-1],[5,5]) 
+            x_rand = np.array(self.TS.dtrSampls[i+1])
+
             v_exp, s_rand = self.PA.sample(x_rand) # Sample a product automaton state
-            traj, t_traj = self.TS.dynamics.steer(x0 = v_exp['x'], xd= x_rand, d_steer = d_steer, ti = t, exct_flg = False) 
+            traj, t_traj = self.TS.dynamics.steer(x0 = v_exp['x'], xd= x_rand, d_steer = d_steer, ti = t, exct_flg = True) 
             x_new = traj[-1,:]
             L_xnew = self.TS.L(AlphbtAPs=self.alphbtAPs,AlphbtPrds=self.alphbtPrds,x=x_new)
             # if L_xnew !=0: 
@@ -368,13 +374,13 @@ class Planner(object):
         parser = twtlParser(tokens)
         phi = parser.formula()
         twtl_ast =  TWTLAbstractSyntaxTreeExtractor().visit(phi)
-        DFAresult = translate(ast=twtl_ast)
+        DFAresult = translate(ast=twtl_ast,kind = 'both')
         alphabetAPs = DFAresult[0]
         # alphabetAPs = ['A','B']
         # --------------------------------------------------------------
-        
-        
-        self.DFAphi = DFAresult[1] # The deterministic finite automaton of the twtl specifications  
+        a = DFAresult[2] 
+        a.visualize()
+        self.DFAphi = DFAresult[2] # The deterministic finite automaton of the twtl specifications  
         self.astAPs  = twtl_ast
         self.astPreds = twtl_astP
         self.alphbtAPs = list(alphabetAPs)
@@ -604,7 +610,7 @@ def main():
     #Testing for simple example [No obstacles]: 
     x0 = (0,0)
     s0 = 0
-    twtl_formula = '[H^3 A]^[0,5] . [H^3 B]^[0,15]'
+    twtl_formula = '[H^2 A]^[0,3] . [H^5 B]^[0,15]'
     twtl_formulaPred = '[H^2 x1>-.1 && x1<2 && x2>-0.1 && x2<2]^[0,3] . [H^5 x1>2.5 && x1<4 && x2>1 && x2<4]^[0,15]'
     # RA = 'x1>-1 && x1<2 && x2>-1 && x2<3'
     # RB = 'x1>2.5 && x1<4 && x2>1 && x2<3'

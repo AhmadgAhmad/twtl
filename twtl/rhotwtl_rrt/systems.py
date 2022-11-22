@@ -42,7 +42,7 @@ class ptRobot(object):
         x0 = np.asarray(x0)
         xd = np.asarray(xd)
         if exct_flg:
-            xf = np.array([d_steer*math.cos(theta_d),d_steer*math.sin(theta_d)])
+            xf = xd
         else:
             theta_d= math.atan2( xd[1]-x0[1],xd[0]-x0[0])
             xf = np.array([d_steer*math.cos(theta_d),d_steer*math.sin(theta_d)])
