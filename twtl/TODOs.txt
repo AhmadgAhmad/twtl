@@ -34,8 +34,11 @@ $$$$$$$$$$$$$$ Where Should I resume:
 - Debug the robustness computation after the updated  
 - 
 - Make sure the sampling based planning algorithm in fact works without the robustness and the TWTL stuff
-- Deterministic sampling. 
--  
+- >>Deterministic sampling<<. 
+    - Plotting the generated deterministic tree
+    - Plot multiple deterministic trees 
+    - For each deterministic tree, compute the robustness of the generated path
+    - Keep track of the time when extending a new vertex 
 
 #####################################################################
 ### Problem to be fixed and currently compensated with hardcodes: ###
