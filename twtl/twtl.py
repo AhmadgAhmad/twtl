@@ -30,7 +30,7 @@ import logging
 import itertools as it
 
 from antlr4 import InputStream, CommonTokenStream
-from torch import threshold
+# from torch import threshold
 
 from twtlLexer import twtlLexer
 from twtlParser import twtlParser

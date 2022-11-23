@@ -2,6 +2,8 @@
 name: "point robot"
 description: ""
 specification: pt_robot_spec
+dtrSampling : 
+  samples: [[0,0],[1,1],[1.9,1.9],[2.4,3],[2.6,3],[2.5,3.5],[3.5,2.3],[3,2],[1.5,3.5]]
 system :
   type: pt_robot
   initial_state: [-0.0, 0.0]
