@@ -13,7 +13,7 @@ import math
 import logging
 from rhotwtl_rrt.mission import Mission
 import matplotlib.pyplot as plt
-
+from twtl import Trace, TraceBatch, Trace_np
 
 def load_system(params):
     '''Loads a system with the given parameters.'''
@@ -39,17 +39,29 @@ class ptRobot(object):
     def steer(self, x0, xd, d_steer, ti, exct_flg = True, u=None, eta=0.2):
         #(initial_state, final_state, starting_time, ending_time)
         '''Steering primitive.'''
+        
+        # Steering using numpy: 
         x0 = np.asarray(x0)
         xd = np.asarray(xd)
         if exct_flg:
             xf = xd
         else:
             theta_d= math.atan2( xd[1]-x0[1],xd[0]-x0[0])
-            xf = np.array([d_steer*math.cos(theta_d),d_steer*math.sin(theta_d)])
+            xf = np.array([x0[0]+d_steer*math.cos(theta_d),x0[1]+d_steer*math.sin(theta_d)])
         nsteps = 9 #int(abs(x0[0]-xf[0])/(self.dt*1.0))        
-        traj = np.linspace(x0,xf,nsteps)
-        t_traj = np.linspace(ti,nsteps*self.dt,nsteps)
-        return traj,t_traj  # TODO return a trace as opposed to trajectories in this way 
+        # traj = np.linspace(x0[0],xf[0],nsteps)
+        # t_traj = np.linspace(ti,nsteps*self.dt,nsteps)
+        # return traj,t_traj  # TODO return a trace as opposed to trajectories in this way 
+
+        #Steering using lists and traces: 
+        trajx1 = list(np.linspace(x0[0],xf[0],nsteps))
+        trajx2 = list(np.linspace(x0[1],xf[1],nsteps))
+        x = np.array([trajx1[-1],trajx2[-1]])
+        t_traj = list(np.linspace(ti,nsteps*self.dt,nsteps))
+        varnames = ['x1','x2']
+        trace = Trace(variables=varnames,timePoints=t_traj,data=[trajx1,trajx2])
+        return trace, x
+        
     
     def sample_us(self,Td, n_s = 6):
         '''
