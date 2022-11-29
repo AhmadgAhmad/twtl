@@ -123,7 +123,7 @@ class PA(object):
         Sa = self.Sa 
         s = []
         Sps = [sa['s'] for sa in Sp ]
-        while True:
+        while True: # FIXME [ahmad] remove sampling rejection. 
             s = random.sample(Sa,1)
             if s[0] in Sps:
                 break
@@ -158,7 +158,7 @@ class TS(object):
         self.dtrSampls = mission.dtrSampling['samples']
         self.dtrSmplsIter = 0 
         if x0 is not None: 
-            v0 = {'x':x0,'ind':0,'p_ind': None,'traj':[]}
+            v0 = {'x':x0,'ind':0,'p_ind': None,'trace':[]}
             self.V.append(v0)
             self.v0 = v0
     def update(self):
@@ -266,6 +266,7 @@ class Planner(object):
         self.astPreds = None
         self.twtlDFA = None
         self.PA = None          # the product automaton
+        self.Fa = []            # the set of accepting states of the TWTL automaton 
         self.TS = None
         self.specification = specs_ast  # as AST
         self.twtl_formula = twtl_formula
@@ -302,21 +303,31 @@ class Planner(object):
             # x_rand = np.random.uniform([bounds[0][0],bounds[1][0]],[bounds[0][1],bounds[1][1]])
             # twtl_formulaPred = 'H^3 x1>-1 && x1<2 && x2>-1 && x2<3 . H^5 x1>2.5 && x1<4 && x2>1 && x2<3 '
             x_rand = np.random.uniform([-1,-1],[5,5]) 
-            x_rand = np.array(self.TS.dtrSampls[i+1])
+            # x_rand = np.array(self.TS.dtrSampls[i+1])
 
             v_exp, s_rand = self.PA.sample(x_rand) # Sample a product automaton state
-            traj, t_traj = self.TS.dynamics.steer(x0 = v_exp['x'], xd= x_rand, d_steer = d_steer, ti = t, exct_flg = True) 
-            x_new = traj[-1,:]
+            # traj, t_traj = self.TS.dynamics.steer(x0 = v_exp['x'], xd= x_rand, d_steer = d_steer, ti = t, exct_flg = False) 
+            trace, x_new = self.TS.dynamics.steer(x0 = v_exp['x'], xd= x_rand, d_steer = d_steer, ti = t, exct_flg = False) 
+            # x_new = traj[-1,:]
+            # x_new = 0
             L_xnew = self.TS.L(AlphbtAPs=self.alphbtAPs,AlphbtPrds=self.alphbtPrds,x=x_new)
             # if L_xnew !=0: 
             s_new = self.DFAphi.next_state(q = s_rand, props = L_xnew) # find the next automaton state, then, extend the TS as well as the PA.    
             if s_new is not None: 
-                v_new = {'x':x_new,'ind':i+1,'p_ind':v_exp['ind'],'traj':traj}
+                v_new = {'x':x_new,'ind':i+1,'p_ind':v_exp['ind'],'trace':trace}
                 p_new = {'s': s_new, 'v': v_new}
                 # Update the product automaton states: 
                 self.PA.Sp.append(p_new) #
                 print(L_xnew)
-            
+                print('rand:',x_rand)
+                print('new',x_new)
+                print('------------')
+                # Append to Fp (accepting states in the product automaton):
+                if s_new in self.Fa:  # FIXME [ahmad] no need to go through the prouct automaton 
+                    self.PA.Fp.append(p_new)
+
+            # if i==7: 
+            #     debug_show_ts(planner=self, system_type=self.mission.system['type'])
             # Testing the labels of the generated points: 
             # for p in self.PA.Sp:
             #     xp = p['v']['x']
@@ -327,7 +338,7 @@ class Planner(object):
             # else: # Just update the TS (tree) in which we'll find the path.   
             #     a = 1 
             #     self.TS.V.append(v_new) # FIXME this step isn't necessary 
-            if i==500: 
+            if i==300: 
                 debug_show_ts(planner=self,system_type=self.mission.system['type'])
 
             # finding the near set: 
@@ -376,10 +387,11 @@ class Planner(object):
         twtl_ast =  TWTLAbstractSyntaxTreeExtractor().visit(phi)
         DFAresult = translate(ast=twtl_ast,kind = 'both')
         alphabetAPs = DFAresult[0]
-        # alphabetAPs = ['A','B']
+        
+        
+       
         # --------------------------------------------------------------
-        a = DFAresult[2] 
-        a.visualize()
+        # a.visualize() FIXME: Plot the automaton graph <<<<<< 
         self.DFAphi = DFAresult[2] # The deterministic finite automaton of the twtl specifications  
         self.astAPs  = twtl_ast
         self.astPreds = twtl_astP
@@ -393,11 +405,16 @@ class Planner(object):
         
         # Instantiate the product automaton: 
         p0 = {'s': self.DFAphi.init[0], 'v': self.TS.v0}
-        pf = {'s': self.DFAphi.final.pop(), 'v': self.TS.v0}
+        
         Sp = [p0]
         Del_p = []
-        Fp = [pf]
+        Fp = []
+        Fa = list(self.DFAphi.final)
+        for sf in Fa:
+            pf = {'s': sf, 'v': self.TS.v0}
+            Fp.append(pf)
         self.PA = PA(p0 = p0, pf = pf, Sp= Sp, Del_p= Del_p, Fp = Fp,Sa=self.DFAphi.g.nodes())
+        self.Fa = Fa
         # environment instantiation: 
         filename = '/home/ahmad/Desktop/twtl/twtl/case1_point_robot.yaml'
         mission = Mission.from_file(filename)
@@ -558,6 +575,20 @@ def debug_show_ts(planner, system_type):
         traj = p['v']['traj']
         if len(traj)>0:
             plt.plot(traj[:,0],traj[:,1],color='red')
+    for pf in planner.PA.Fp:
+        if pf['v']['p_ind'] is None: 
+            continue
+        ps = pf
+        while ps['v']['p_ind'] is not None:
+            if len(ps['v']['traj'])>0:
+                plt.plot(ps['v']['traj'][:,0],ps['v']['traj'][:,1],color='green', linewidth=2)
+            psp = [p for p in planner.PA.Sp if p['v']['ind']==ps['v']['p_ind']]
+            psp = psp[0]
+            # traj = psp['v']['traj']
+            ps = psp 
+        a  = 1 
+    # Plot satisfying paths: 
+
     a = 1
     
     
@@ -565,25 +596,7 @@ def debug_show_ts(planner, system_type):
         
 
 
-    if planner.exists_solution():
-        v = planner.ts.best_path.pop()
-        while v:
-            x, phi = v
-            plt.plot([x[0]], [x[1]], 'rd')
-            v_pa = planner.ts.nodes[x][phi]['parent']
-            if v_pa:
-                x_pa, _ = v_pa
-                plt.plot([x[0], x_pa[0]], [x[1], x_pa[1]], 'r')
-            v = v_pa
-
-    plt.tight_layout()
-    script_dir = os.path.dirname(__file__)
-    out_dir = os.path.join(script_dir, 'cases/')
-    if planner.save_plt_flg:
-        for ext in ('png', 'jpg', 'eps'):
-            plt.savefig(os.path.join(out_dir, '{}_{}.{}'.format(system_type,
-                                                            planner.steps, ext)))
-    plt.show()
+    
 
 
 def main():
@@ -612,8 +625,10 @@ def main():
     s0 = 0
     twtl_formula = '[H^2 A]^[0,3] . [H^5 B]^[0,15]'
     twtl_formulaPred = '[H^2 x1>-.1 && x1<2 && x2>-0.1 && x2<2]^[0,3] . [H^5 x1>2.5 && x1<4 && x2>1 && x2<4]^[0,15]'
-    # RA = 'x1>-1 && x1<2 && x2>-1 && x2<3'
-    # RB = 'x1>2.5 && x1<4 && x2>1 && x2<3'
+    
+    twtl_formula = '[H^2 A]^[0,3] . [H^3 B]^[0,5]'
+    twtl_formulaPred = '[H^2 x1>-.1 && x1<2 && x2>-0.1 && x2<2]^[0,3] . [H^3 x1>2.5 && x1<4 && x2>1 && x2<4]^[0,5]'
+    
 
 
     planner.initialize(twtl_formula = twtl_formula, 
