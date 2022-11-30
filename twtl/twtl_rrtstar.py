@@ -47,6 +47,7 @@ from twtlParser import twtlParser
 from twtl_ast import TWTLAbstractSyntaxTreeExtractor
 from twtl_ast import Operation as Op
 from twtl import Trace, TraceBatch, Trace_np
+from twtl import robustness
 from ordered_set import OrderedSet as oset 
 
 
@@ -298,6 +299,7 @@ class Planner(object):
         
         #The planning loop Line 6-28 : 
         t = 0
+        formulaAST = self.astPreds
         for i in range(10000): #range(self.mission.planning['planning_steps']):
             # building the tree based-off sampling and considering no obstacles in the workspace. 
             # x_rand = np.random.uniform([bounds[0][0],bounds[1][0]],[bounds[0][1],bounds[1][1]])
@@ -307,14 +309,15 @@ class Planner(object):
 
             v_exp, s_rand = self.PA.sample(x_rand) # Sample a product automaton state
             # traj, t_traj = self.TS.dynamics.steer(x0 = v_exp['x'], xd= x_rand, d_steer = d_steer, ti = t, exct_flg = False) 
-            trace, x_new = self.TS.dynamics.steer(x0 = v_exp['x'], xd= x_rand, d_steer = d_steer, ti = t, exct_flg = False) 
+            trace_t_traj, x_new = self.TS.dynamics.steer(x0 = v_exp['x'], xd= x_rand, d_steer = d_steer, ti = t, exct_flg = False) 
             # x_new = traj[-1,:]
             # x_new = 0
             L_xnew = self.TS.L(AlphbtAPs=self.alphbtAPs,AlphbtPrds=self.alphbtPrds,x=x_new)
+            rho = robustness(formulaAST = formulaAST, traj = trace_t_traj[0],time_traj = trace_t_traj[1])
             # if L_xnew !=0: 
             s_new = self.DFAphi.next_state(q = s_rand, props = L_xnew) # find the next automaton state, then, extend the TS as well as the PA.    
             if s_new is not None: 
-                v_new = {'x':x_new,'ind':i+1,'p_ind':v_exp['ind'],'trace':trace}
+                v_new = {'x':x_new,'ind':i+1,'p_ind':v_exp['ind'],'trace':trace_t_traj}
                 p_new = {'s': s_new, 'v': v_new}
                 # Update the product automaton states: 
                 self.PA.Sp.append(p_new) #

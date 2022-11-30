@@ -60,7 +60,7 @@ class ptRobot(object):
         t_traj = list(np.linspace(ti,nsteps*self.dt,nsteps))
         varnames = ['x1','x2']
         trace = Trace(variables=varnames,timePoints=t_traj,data=[trajx1,trajx2])
-        return trace, x
+        return [trace,t_traj], x
         
     
     def sample_us(self,Td, n_s = 6):
