@@ -390,53 +390,82 @@ def robustness(formulaAST,traj,time_traj,t1=None,t2=None,trace_test = None):#t1=
     
 
 
-def rois(formula,traj,shift):
+def rois(formulaAST,traj,t1=None,t2=None,trace_test = None,time_traj = None):
     '''FIXME: call online monitor
     assumes traj is sorted w.r.t. times
     '''
-    assert len(traj[0]) == len(traj[1]), traj
-    assert shift >= 0.0
+    assert time_traj is not None
+
     
-    if formula.op == Op.NOP:
-        rho_low, rho_high = [max,max] 
-    elif formula.op == Op.HOLD: # The base case
-        s, t = traj
-        if t[0] <= shift <= t[-1]:
-            s_i = [x[self.var_idx] for x in s]
-            x = np.interp(shift, t, s_i)
-            if self.rel == STL.LESS:
-                rho = self.mu - x
-            else: # self.rel == STL.GREATER
-                rho = x - self.mu
-            rho_low, rho_high = rho, rho
+    if formulaAST.op == Op.NOP: #Predicated proposition 
+        pass
+    elif formulaAST.op == Op.HOLD:
+        d = formulaAST.duration
+        if len(time_traj)==0:
+            return [float('-Inf'),float('Inf')]
+        if t1 is None and t2 is None:
+            t1,t2 = time_traj[0],time_traj[-1]
+        times = [t for t in time_traj if t1 <= t <= d+t1]
+        if t2 - t1 < d:
+            rois_rtrn =  [float('-Inf'),float('Inf')]
+        else: 
+            trace_test.value(formulaAST.variable,times[0])
+            if formulaAST.relation in ('>=','>'):#(Op.GE, Op.GT):
+                rs =  [value - formulaAST.threshold for value in traj[times[0]-1:times[-1]]]
+            elif formulaAST.relation in ('<=','<'):#(Op.LE, Op.LT):
+                rs =  [formulaAST.threshold - value for value in traj[times[0]-1:times[-1]]]
+            elif formulaAST.relation == Op.EQ:
+                rs = [-np.abs(value - formulaAST.threshold) for value in traj[times[0]-1:times[-1]]]
+            elif formulaAST.relation == Op.NQ:
+                rs = [np.abs(value - formulaAST.threshold) for value in traj[times[0]-1:times[-1]]]
+            rho = min(rs)
+            if formulaAST.negated:
+                rho = -rho
+            rois_rtrn = [rho, rho]
+        return rois_rtrn
+    
+    elif formulaAST.op == Op.WITHIN:
+        if len(time_traj)==0:
+            return [float('-Inf'),float('Inf')]
+        if t1 is None and t2 is None:
+            t1,t2 = time_traj[0],time_traj[-1]
+        if t2 - t1 < formulaAST.high:
+            rois_rtrn = [float('-Inf'),float('Inf')]
         else:
-            rho_low, rho_high = -self.space.rho_max, self.space.rho_max
-    elif self.op in (STL.OR, STL.AND):
-        rho_low, rho_high = zip(*[f.rosi(traj, shift)
-                                                    for f in self.subformulae])
-        if self.op == STL.OR:
-            rho_low, rho_high = max(rho_low), max(rho_high)
-        else: # self.op == STL.AND
-            rho_low, rho_high = min(rho_low), min(rho_high)
-    elif self.op == STL.NOT:
-        rho_low, rho_high = self.subformula.rosi(traj)
-        rho_low, rho_high = -rho_high, -rho_low
-    elif self.op in (STL.EVENTUALLY, STL.ALWAYS):
-        times = set([t for t in traj[1] if self.low <= t <= self.high]
-                    + [self.low, self.high]) 
-        rho_low, rho_high = zip(*[self.subformula.rosi(traj, t)
-                                                            for t in times])
-        if self.op == STL.EVENTUALLY:
-            rho_low, rho_high = max(rho_low), max(rho_high)
-        else: # self.op == STL.ALWAYS
-            rho_low, rho_high = min(rho_low), min(rho_high)
-    elif self.op == STL.UNTIL:
-        raise NotImplementedError
-    else:
-        raise ValueError('Unknown operation, opcode: %d!', self.op)
-    
-    assert rho_low <= rho_high
-    return rho_low, rho_high
+            times = [t for t in time_traj if t1+formulaAST.low <= t <= t1+formulaAST.high]
+            roiss = [rois(formulaAST = formulaAST.child, traj = traj, time_traj=times,t1 = t, t2 = time_traj[0]+formulaAST.high) for t in times] # These are predicated propositions 
+            roiss = np.array(roiss)
+            rois_rtrn = [max(roiss[:,0]),max(roiss[:,1])]
+        return rois_rtrn
+    elif formulaAST.op in (Op.OR,Op.AND):
+        # times = [t]
+        roiss = [rois(formulaAST= f,traj=traj,time_traj=time_traj, trace_test=trace_test) for f in [formulaAST.left,formulaAST.right]]
+        if formulaAST.op == Op.OR: 
+            rois_rtrn = [max(roiss[:,0]),max(roiss[:,1])]
+        else: 
+            rois_rtrn = [min(roiss[:,0]),min(roiss[:,1])]
+        return rois_rtrn
+    elif formulaAST.op == Op.NOT: 
+        return -rois(formulaAST= formulaAST,traj=traj,time_traj=time_traj)
+    elif formulaAST.op == Op.CONCAT:
+        times = time_traj
+        rhomx_min = float('-inf')
+        rhomx_max = float('-inf')
+        for t in times[:]: # to solve the outer max operator 
+            t_step = times[1] - times[0]
+            times_l = [tt for tt in times if times[0] <= tt <=t]
+            times_r = [tt for tt in times if t+t_step<=tt<=times[-1]]
+            rois_l =  rois(formulaAST= formulaAST.left,traj=traj,time_traj=times_l)
+            rois_r =  rois(formulaAST= formulaAST.right,traj=traj,time_traj=times_r)
+            
+            rois_rtrn = [min(rois_l[0],rois_r[0]),min(rois_l[1],rois_r[1])] # to solve hte inner min operator 
+            if rois_rtrn[0]>rhomx_min:  # to solve the outer max operator 
+                rhomx_min = rois_rtrn[0]
+            if rois_rtrn[1]>rhomx_max:  # to solve the outer max operator 
+                rhomx_max = rois_rtrn[1] 
+        return [rhomx_min,rhomx_max] 
+    else: 
+        raise('You are not accounting for op:%d',formulaAST.op)
 
 #------------------------------------------
 # ast = twtl_dfa.tree 
