@@ -373,13 +373,14 @@ def robustness(formulaAST,traj,time_traj,t1=None,t2=None,trace_test = None):#t1=
     elif formulaAST.op == Op.CONCAT:
         times = time_traj
         rhomx = float('-inf')
-        for t in times[:]:
+        for t in times[:]: # to solve the outer max operator 
+            t_step = times[1] - times[0]
             times_l = [tt for tt in times if times[0] <= tt <=t]
-            times_r = [tt for tt in times if t+1<=tt<=times[-1]]
+            times_r = [tt for tt in times if t+t_step<=tt<=times[-1]]
             rho_l =  robustness(formulaAST= formulaAST.left,traj=traj,time_traj=times_l)
             rho_r =  robustness(formulaAST= formulaAST.right,traj=traj,time_traj=times_r)
-            rho = min(rho_l,rho_r)
-            if rho>rhomx:
+            rho = min(rho_l,rho_r) # to solve hte inner min operator 
+            if rho>rhomx:  # to solve the outer max operator 
                 rhomx = rho
         return rhomx 
     else: 
@@ -389,60 +390,60 @@ def robustness(formulaAST,traj,time_traj,t1=None,t2=None,trace_test = None):#t1=
     
 
 
-    def rois(formula,traj,shift):
-        '''FIXME: call online monitor
-        assumes traj is sorted w.r.t. times
-        '''
-        assert len(traj[0]) == len(traj[1]), traj
-        assert shift >= 0.0
-        
-        if formula.op == Op.NOP:
-            rho_low, rho_high = [max,max] 
-        elif formula.op == Op.HOLD: # The base case
-            s, t = traj
-            if t[0] <= shift <= t[-1]:
-                s_i = [x[self.var_idx] for x in s]
-                x = np.interp(shift, t, s_i)
-                if self.rel == STL.LESS:
-                    rho = self.mu - x
-                else: # self.rel == STL.GREATER
-                    rho = x - self.mu
-                rho_low, rho_high = rho, rho
-            else:
-                rho_low, rho_high = -self.space.rho_max, self.space.rho_max
-        elif self.op in (STL.OR, STL.AND):
-            rho_low, rho_high = zip(*[f.rosi(traj, shift)
-                                                     for f in self.subformulae])
-            if self.op == STL.OR:
-                rho_low, rho_high = max(rho_low), max(rho_high)
-            else: # self.op == STL.AND
-                rho_low, rho_high = min(rho_low), min(rho_high)
-        elif self.op == STL.NOT:
-            rho_low, rho_high = self.subformula.rosi(traj)
-            rho_low, rho_high = -rho_high, -rho_low
-        elif self.op in (STL.EVENTUALLY, STL.ALWAYS):
-            times = set([t for t in traj[1] if self.low <= t <= self.high]
-                        + [self.low, self.high]) 
-            rho_low, rho_high = zip(*[self.subformula.rosi(traj, t)
-                                                                for t in times])
-            if self.op == STL.EVENTUALLY:
-                rho_low, rho_high = max(rho_low), max(rho_high)
-            else: # self.op == STL.ALWAYS
-                rho_low, rho_high = min(rho_low), min(rho_high)
-        elif self.op == STL.UNTIL:
-            raise NotImplementedError
+def rois(formula,traj,shift):
+    '''FIXME: call online monitor
+    assumes traj is sorted w.r.t. times
+    '''
+    assert len(traj[0]) == len(traj[1]), traj
+    assert shift >= 0.0
+    
+    if formula.op == Op.NOP:
+        rho_low, rho_high = [max,max] 
+    elif formula.op == Op.HOLD: # The base case
+        s, t = traj
+        if t[0] <= shift <= t[-1]:
+            s_i = [x[self.var_idx] for x in s]
+            x = np.interp(shift, t, s_i)
+            if self.rel == STL.LESS:
+                rho = self.mu - x
+            else: # self.rel == STL.GREATER
+                rho = x - self.mu
+            rho_low, rho_high = rho, rho
         else:
-            raise ValueError('Unknown operation, opcode: %d!', self.op)
-        
-        assert rho_low <= rho_high
-        return rho_low, rho_high
+            rho_low, rho_high = -self.space.rho_max, self.space.rho_max
+    elif self.op in (STL.OR, STL.AND):
+        rho_low, rho_high = zip(*[f.rosi(traj, shift)
+                                                    for f in self.subformulae])
+        if self.op == STL.OR:
+            rho_low, rho_high = max(rho_low), max(rho_high)
+        else: # self.op == STL.AND
+            rho_low, rho_high = min(rho_low), min(rho_high)
+    elif self.op == STL.NOT:
+        rho_low, rho_high = self.subformula.rosi(traj)
+        rho_low, rho_high = -rho_high, -rho_low
+    elif self.op in (STL.EVENTUALLY, STL.ALWAYS):
+        times = set([t for t in traj[1] if self.low <= t <= self.high]
+                    + [self.low, self.high]) 
+        rho_low, rho_high = zip(*[self.subformula.rosi(traj, t)
+                                                            for t in times])
+        if self.op == STL.EVENTUALLY:
+            rho_low, rho_high = max(rho_low), max(rho_high)
+        else: # self.op == STL.ALWAYS
+            rho_low, rho_high = min(rho_low), min(rho_high)
+    elif self.op == STL.UNTIL:
+        raise NotImplementedError
+    else:
+        raise ValueError('Unknown operation, opcode: %d!', self.op)
     
-    #------------------------------------------
-    # ast = twtl_dfa.tree 
+    assert rho_low <= rho_high
+    return rho_low, rho_high
 
-    
-    a = 1
-    pass
+#------------------------------------------
+# ast = twtl_dfa.tree 
+
+
+a = 1
+pass
 
 # The following two classes are to make traces cleaner: 
 class Trace_np(object):
