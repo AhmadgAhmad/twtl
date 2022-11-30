@@ -47,7 +47,7 @@ from twtlParser import twtlParser
 from twtl_ast import TWTLAbstractSyntaxTreeExtractor
 from twtl_ast import Operation as Op
 from twtl import Trace, TraceBatch, Trace_np
-from twtl import robustness
+from twtl import robustness, rois
 from ordered_set import OrderedSet as oset 
 
 
@@ -313,7 +313,7 @@ class Planner(object):
             # x_new = traj[-1,:]
             # x_new = 0
             L_xnew = self.TS.L(AlphbtAPs=self.alphbtAPs,AlphbtPrds=self.alphbtPrds,x=x_new)
-            rho = robustness(formulaAST = formulaAST, traj = trace_t_traj[0],time_traj = trace_t_traj[1])
+            rois_rtrn = rois(formulaAST = formulaAST, traj = trace_t_traj[0],time_traj = trace_t_traj[1])
             # if L_xnew !=0: 
             s_new = self.DFAphi.next_state(q = s_rand, props = L_xnew) # find the next automaton state, then, extend the TS as well as the PA.    
             if s_new is not None: 
@@ -637,6 +637,21 @@ def main():
     planner.initialize(twtl_formula = twtl_formula, 
                        twtl_formulaPred = twtl_formulaPred,
                        x0 = x0, s0 = s0)
+    
+    # Test the rois with determinstic trajectory: 
+    x1l1 = np.linspace(0,2,10)
+    x1l2 = np.linspace(2.1,3,10)
+    x1l3 = np.linspace(3.1,3.5,10) 
+    x1l4 = np.linspace(3.6,3.9,10)
+
+    x1l1 = np.linspace(0,2,10)
+    x1l2 = np.linspace(2.1,3,10)
+    x1l3 = np.linspace(3.1,3.5,10) 
+    x1l4 = np.linspace(3.6,3.9,10)
+
+    a = 1
+
+    
     
     # Solve the planning problem (Line 6 - 30):   
     planner.solve()
