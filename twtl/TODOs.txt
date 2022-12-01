@@ -30,10 +30,14 @@ $$$$$$$$$$$$$$ Where Should I resume:
 - Make sure the sampling based planning algorithm in fact works without the robustness and the TWTL stuff
 - >>Deterministic sampling<<. 
     - Plotting the generated deterministic tree
-    - Plot multiple deterministic trees 
+    
     - For each deterministic tree, compute the robustness of the generated path
     - Keep track of the time when extending a new vertex 
 
+- >> Rewiring using the online monitoring
+     - Using the traditional monitoring definition  
+     - Program the AGM version of the robustness 
+     - Generate some solutions before the CDC, man. 
 #####################################################################
 ### Problem to be fixed and currently compensated with hardcodes: ###
 #####################################################################
